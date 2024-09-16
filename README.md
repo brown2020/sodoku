@@ -2,6 +2,8 @@
 
 A web-based Sudoku game built with Next.js, TypeScript, and Tailwind CSS. This app allows users to play Sudoku, check solutions, provide hints, and download the current puzzle as a PDF.
 
+![Sudoku Game Screenshot](./screenshot.png) <!-- Include a screenshot of your app here -->
+
 ## Table of Contents
 
 - [Features](#features)
@@ -24,6 +26,10 @@ A web-based Sudoku game built with Next.js, TypeScript, and Tailwind CSS. This a
 - **Download PDF**: Exports the current puzzle to a PDF with proper grid lines.
 - **Responsive Design**: Fully responsive design using Tailwind CSS.
 
+## Demo
+
+Check out the live demo: [Sudoku Game](https://sodokuapp.vercel.app/)
+
 ## Installation
 
 To run this project locally, follow these steps:
@@ -31,8 +37,8 @@ To run this project locally, follow these steps:
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/brown2020/sudoku.git
-   cd sudoku
+   git clone https://github.com/brown2020/sodoku.git
+   cd sodoku
    ```
 
 2. **Install the dependencies**:
@@ -69,14 +75,13 @@ To run this project locally, follow these steps:
 ## Project Structure
 
 ```
-sudoku/
+sodoku/
 ├── public/                   # Static assets
 ├── src/
+│   ├── app/                  # Next.js app directory (routes, layouts, etc.)
 │   ├── components/           # React components (ControlPanel, SudokuGrid, SudokuCell, etc.)
 │   ├── hooks/                # Custom React hooks (useSudoku.ts)
-│   ├── utils/                # Utility functions (generatePdf.ts, sudokuUtils.ts)
-│   └── pages/                # Next.js pages (index.tsx)
-├── styles/                   # Global styles
+│   └── utils/                # Utility functions (generatePdf.ts, sudokuUtils.ts)
 ├── README.md                 # Project README file
 ├── package.json              # NPM package file
 └── tsconfig.json             # TypeScript configuration

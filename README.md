@@ -2,7 +2,7 @@
 
 A modern, feature-rich Sudoku game built with Next.js 14, TypeScript, and Tailwind CSS. This web application offers an engaging Sudoku experience with intelligent solution checking, visual feedback, and multiple difficulty levels.
 
-![Sudoku Game Screenshot](./screenshot.png) <!-- Include an updated screenshot of your app -->
+![Sudoku Game Screenshot](/screenshot.png) <!-- Include an updated screenshot of your app -->
 
 ## Table of Contents
 

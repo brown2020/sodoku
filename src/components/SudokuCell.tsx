@@ -22,7 +22,6 @@ const SudokuCell = memo(
     const [animate, setAnimate] = useState(false);
     const [prevValue, setPrevValue] = useState(value);
 
-    // Trigger animation when value changes
     useEffect(() => {
       if (value !== prevValue) {
         setAnimate(true);
@@ -43,8 +42,10 @@ const SudokuCell = memo(
     );
 
     const cellClass = `
-    w-12 h-12 
-    text-center text-xl
+    w-full h-full
+    aspect-square
+    text-center
+    text-[clamp(1rem,3vw,1.5rem)]
     focus:outline-none focus:ring-2 focus:ring-blue-500
     transition-all duration-300
     ${animate ? "animate-number-enter" : ""}
@@ -55,11 +56,10 @@ const SudokuCell = memo(
         : "bg-white hover:bg-gray-50"
     }
     ${isOriginal ? "font-bold" : ""}
-    relative
   `;
 
     return (
-      <div className="relative">
+      <div className="relative w-full h-full">
         <input
           type="text"
           inputMode="numeric"

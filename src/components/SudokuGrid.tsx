@@ -36,8 +36,8 @@ const SudokuGrid = memo(
     };
 
     return (
-      <div className="w-full overflow-hidden rounded-lg shadow-lg p-5">
-        <table className="border-collapse mx-auto">
+      <div className="w-full max-w-[500px] mx-auto px-4 overflow-auto">
+        <table className="border-collapse mx-auto w-full aspect-square">
           <tbody>
             {puzzle.map((row, rowIndex) => (
               <tr key={rowIndex}>
@@ -45,7 +45,7 @@ const SudokuGrid = memo(
                   <td
                     key={`${rowIndex}-${colIndex}`}
                     style={getBorderStyle(rowIndex, colIndex)}
-                    className="relative"
+                    className="relative p-0"
                   >
                     <SudokuCell
                       value={cell}

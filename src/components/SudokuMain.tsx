@@ -53,21 +53,14 @@ const SudokuMain = () => {
     generateNewPuzzle();
   }, [generateNewPuzzle]);
 
-  // Performance optimization: Use CSS transforms for animations
-  const containerClass = `
-    p-4 max-w-4xl mx-auto
-    transform-gpu 
-    ${gameState.isComplete && !gameState.usedSolver ? "animate-success" : ""}
-  `;
-
   return (
-    <div className={containerClass}>
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+    <div className="container mx-auto px-4 max-w-4xl flex flex-col items-center min-h-screen py-8">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center text-gray-800">
         Sudoku Challenge
       </h1>
 
       {/* Difficulty selector */}
-      <div className="flex justify-center mb-4">
+      <div className="w-full max-w-[500px] flex justify-center mb-4">
         <select
           value={difficulty}
           onChange={(e) =>
@@ -81,16 +74,18 @@ const SudokuMain = () => {
         </select>
       </div>
 
-      <ControlPanel
-        generateNewPuzzle={generateNewPuzzle}
-        checkCompletion={checkCompletion}
-        undoMove={undoMove}
-        provideHint={provideHint}
-        solvePuzzle={solvePuzzle}
-        downloadPdf={downloadPdf}
-        isPuzzleFilled={gameState.isPuzzleFilled}
-        isComplete={gameState.isComplete}
-      />
+      <div className="w-full max-w-[500px] px-4 mb-6">
+        <ControlPanel
+          generateNewPuzzle={generateNewPuzzle}
+          checkCompletion={checkCompletion}
+          undoMove={undoMove}
+          provideHint={provideHint}
+          solvePuzzle={solvePuzzle}
+          downloadPdf={downloadPdf}
+          isPuzzleFilled={gameState.isPuzzleFilled}
+          isComplete={gameState.isComplete}
+        />
+      </div>
 
       {/* Grid wrapper with error boundary */}
       <ErrorBoundary
@@ -98,7 +93,7 @@ const SudokuMain = () => {
           <div>Something went wrong with the game board. Please refresh.</div>
         }
       >
-        <div className="perspective-1000">
+        <div className="w-full perspective-1000">
           <SudokuGrid
             puzzle={puzzle}
             conflicts={conflicts}
@@ -110,13 +105,18 @@ const SudokuMain = () => {
         </div>
       </ErrorBoundary>
 
-      <GameStats moveCount={stats.moveCount} timeElapsed={stats.timeElapsed} />
+      <div className="w-full max-w-[500px] px-4">
+        <GameStats
+          moveCount={stats.moveCount}
+          timeElapsed={stats.timeElapsed}
+        />
+      </div>
 
       {/* Success message - only show for legitimate wins */}
       {gameState.isComplete && !gameState.usedSolver && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-8 rounded-lg shadow-xl transform transition-all">
-            <h2 className="text-2xl font-bold text-green-600 mb-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
+          <div className="bg-white p-6 md:p-8 rounded-lg shadow-xl transform transition-all max-w-sm w-full">
+            <h2 className="text-xl md:text-2xl font-bold text-green-600 mb-4">
               Congratulations!
             </h2>
             <p className="mb-4">
@@ -126,7 +126,7 @@ const SudokuMain = () => {
             </p>
             <button
               onClick={() => generateNewPuzzle()}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
             >
               New Game
             </button>

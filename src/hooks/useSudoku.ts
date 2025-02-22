@@ -14,7 +14,7 @@ const useSudoku = () => {
   const solutionRef = useRef<number[][]>([]);
   const moveCountRef = useRef(0);
   const startTimeRef = useRef<number>(0);
-  const timerRef = useRef<NodeJS.Timeout>();
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Main game state
   const [puzzle, setPuzzle] = useState<number[][]>([]);

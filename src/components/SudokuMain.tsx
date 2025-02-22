@@ -66,7 +66,7 @@ const SudokuMain = () => {
           onChange={(e) =>
             setDifficulty(e.target.value as "easy" | "medium" | "hard")
           }
-          className="px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 rounded-sm border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
         >
           <option value="easy">Easy</option>
           <option value="medium">Medium</option>
@@ -126,7 +126,7 @@ const SudokuMain = () => {
             </p>
             <button
               onClick={() => generateNewPuzzle()}
-              className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              className="w-full px-4 py-2 bg-blue-500 text-white rounded-sm hover:bg-blue-600 transition-colors"
             >
               New Game
             </button>

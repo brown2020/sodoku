@@ -21,7 +21,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   isComplete,
 }) => {
   const buttonClass =
-    "px-4 py-2 rounded transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2";
+    "px-4 py-2 rounded-sm transition-all duration-200 focus:outline-hidden focus:ring-2 focus:ring-offset-2";
 
   return (
     <div className="mb-6 flex flex-wrap justify-center gap-4">

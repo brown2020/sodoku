@@ -46,7 +46,7 @@ const SudokuCell = memo(
     aspect-square
     text-center
     text-[clamp(1rem,3vw,1.5rem)]
-    focus:outline-none focus:ring-2 focus:ring-blue-500
+    focus:outline-hidden focus:ring-2 focus:ring-blue-500
     transition-all duration-300
     ${animate ? "animate-number-enter" : ""}
     ${conflict ? "animate-mistake bg-red-200" : ""}

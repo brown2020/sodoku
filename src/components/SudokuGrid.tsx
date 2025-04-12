@@ -39,6 +39,15 @@ const SudokuGrid = memo(
       return styles;
     };
 
+    // Handle empty puzzle state
+    if (!puzzle || puzzle.length === 0) {
+      return (
+        <div className="w-full max-w-[500px] mx-auto px-4 h-[500px] flex items-center justify-center">
+          <div className="text-gray-500">Loading puzzle...</div>
+        </div>
+      );
+    }
+
     return (
       <div className="w-full max-w-[500px] mx-auto px-4 overflow-auto">
         <table className="border-collapse mx-auto w-full aspect-square">
@@ -53,15 +62,26 @@ const SudokuGrid = memo(
                   >
                     <SudokuCell
                       value={cell}
-                      conflict={conflicts[rowIndex][colIndex]}
+                      conflict={
+                        conflicts && conflicts[rowIndex]
+                          ? conflicts[rowIndex][colIndex]
+                          : false
+                      }
                       onChange={(value: string) =>
                         handleChange(rowIndex, colIndex, value)
                       }
                       isComplete={isComplete}
                       wasAutoSolved={
-                        wasAutoSolved && initialPuzzle[rowIndex][colIndex] === 0
+                        wasAutoSolved &&
+                        initialPuzzle &&
+                        initialPuzzle[rowIndex] &&
+                        initialPuzzle[rowIndex][colIndex] === 0
                       }
-                      isOriginal={initialPuzzle[rowIndex][colIndex] !== 0}
+                      isOriginal={
+                        initialPuzzle &&
+                        initialPuzzle[rowIndex] &&
+                        initialPuzzle[rowIndex][colIndex] !== 0
+                      }
                       selectedNumber={selectedNumber}
                       onCellClick={onCellClick}
                     />

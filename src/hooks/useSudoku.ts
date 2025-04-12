@@ -17,8 +17,12 @@ const useSudoku = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Main game state
-  const [puzzle, setPuzzle] = useState<number[][]>([]);
-  const [initialPuzzle, setInitialPuzzle] = useState<number[][]>([]);
+  const [puzzle, setPuzzle] = useState<number[][]>(
+    Array.from({ length: 9 }, () => Array(9).fill(0))
+  );
+  const [initialPuzzle, setInitialPuzzle] = useState<number[][]>(
+    Array.from({ length: 9 }, () => Array(9).fill(0))
+  );
   const [conflicts, setConflicts] = useState<boolean[][]>(
     Array.from({ length: 9 }, () => Array(9).fill(false))
   );
@@ -51,6 +55,13 @@ const useSudoku = () => {
 
   // Timer effect
   useEffect(() => {
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // Start a new timer if game is active
     if (startTimeRef.current && !gameState.isComplete) {
       timerRef.current = setInterval(() => {
         setStats((prev) => ({
@@ -65,28 +76,37 @@ const useSudoku = () => {
         clearInterval(timerRef.current);
       }
     };
-  }, [gameState.isComplete]);
+  }, [gameState.isComplete, puzzle]);
 
   const difficultySettings = useRef({
-    easy: 40, // Remove 40 numbers (41 remain)
-    medium: 50, // Remove 50 numbers (31 remain)
-    hard: 60, // Remove 60 numbers (21 remain)
+    easy: 30, // Remove 30 numbers (51 remain)
+    medium: 40, // Remove 40 numbers (41 remain)
+    hard: 50, // Remove 50 numbers (31 remain)
   });
 
   const generateNewPuzzle = useCallback(() => {
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
     // Generate the complete grid
     const fullGrid = generateFullGrid();
+    console.log("Generated full grid:", fullGrid);
     solutionRef.current = fullGrid.map((row) => [...row]);
 
     // Create puzzle by removing numbers according to difficulty
     const numbersToRemove = difficultySettings.current[difficulty];
     const newPuzzle = removeNumbers(fullGrid, numbersToRemove);
+    console.log("New puzzle after removing numbers:", newPuzzle);
 
     // Store initial state and reset game state
     setInitialPuzzle(newPuzzle.map((row) => [...row]));
     setPuzzle(newPuzzle);
     setConflicts(Array.from({ length: 9 }, () => Array(9).fill(false)));
     setHistory([]);
+    setSelectedNumber(null);
     setGameState({
       isPuzzleFilled: false,
       isComplete: false,
@@ -101,9 +121,7 @@ const useSudoku = () => {
     moveCountRef.current = 0;
     startTimeRef.current = Date.now();
 
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
+    // Timer is now started via the useEffect with puzzle dependency
   }, [difficulty]);
 
   const handleChange = useCallback(

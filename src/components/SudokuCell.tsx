@@ -1,5 +1,5 @@
 // SudokuCell.tsx
-import React, { memo, useCallback, useEffect, useState } from "react";
+import React, { memo, useCallback } from "react";
 
 interface SudokuCellProps {
   value: number;
@@ -23,18 +23,6 @@ const SudokuCell = memo(
     selectedNumber,
     onCellClick,
   }: SudokuCellProps) => {
-    const [animate, setAnimate] = useState(false);
-    const [prevValue, setPrevValue] = useState(value);
-
-    useEffect(() => {
-      if (value !== prevValue) {
-        setAnimate(true);
-        setPrevValue(value);
-        const timer = setTimeout(() => setAnimate(false), 300);
-        return () => clearTimeout(timer);
-      }
-    }, [value, prevValue]);
-
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -54,46 +42,39 @@ const SudokuCell = memo(
     const isHighlighted = value !== 0 && value === selectedNumber;
 
     const cellClass = `
-    w-full h-full
-    aspect-square
-    text-center
-    text-[clamp(1rem,3vw,1.5rem)]
-    focus:outline-hidden focus:ring-2 focus:ring-blue-500
-    transition-all duration-300
-    ${animate ? "animate-number-enter" : ""}
-    ${conflict ? "animate-mistake bg-red-200" : ""}
-    ${
-      isHighlighted
-        ? "bg-green-500 text-white"
-        : wasAutoSolved
-        ? "bg-blue-100 text-blue-700 font-semibold"
-        : isOriginal
-        ? "bg-gray-100 text-gray-800"
-        : "bg-white hover:bg-gray-50"
-    }
-    ${isOriginal ? "font-bold" : ""}
-    cursor-pointer
-  `;
+      w-full h-full
+      aspect-square
+      flex items-center justify-center
+      text-center
+      text-[clamp(1rem,3vw,1.5rem)]
+      focus:outline-hidden focus:ring-2 focus:ring-blue-500
+      transition-all duration-300
+      ${conflict ? "bg-red-200" : ""}
+      ${
+        isHighlighted
+          ? "bg-green-500 text-white"
+          : wasAutoSolved
+          ? "bg-blue-100 text-blue-700 font-semibold"
+          : isOriginal
+          ? "bg-gray-100 text-gray-800"
+          : "bg-white hover:bg-gray-50"
+      }
+      ${isOriginal ? "font-bold" : ""}
+      cursor-pointer
+    `;
 
-    // Use a non-input element for original cells to avoid input-related issues
-    if (isOriginal) {
+    // For original cells or completed game, use div
+    if (isOriginal || isComplete) {
       return (
-        <div className={`relative w-full h-full`} onClick={handleClick}>
-          <div className={`${cellClass} flex items-center justify-center`}>
-            {value !== 0 ? value : ""}
-          </div>
-          {animate && (
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="animate-circle-out absolute inset-0 bg-blue-500/10 rounded-full" />
-            </div>
-          )}
+        <div className={cellClass} onClick={handleClick}>
+          {value !== 0 ? value : ""}
         </div>
       );
     }
 
-    // For editable cells, use the input element
+    // For editable cells, use input
     return (
-      <div className="relative w-full h-full" onClick={handleClick}>
+      <div className="relative w-full h-full">
         <input
           type="text"
           inputMode="numeric"
@@ -102,18 +83,11 @@ const SudokuCell = memo(
           onChange={handleChange}
           className={cellClass}
           maxLength={1}
-          disabled={isComplete}
           onClick={(e) => {
-            // Prevent event bubbling on the input
             e.stopPropagation();
             handleClick();
           }}
         />
-        {animate && (
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="animate-circle-out absolute inset-0 bg-blue-500/10 rounded-full" />
-          </div>
-        )}
       </div>
     );
   }

@@ -2,18 +2,10 @@
 "use client";
 
 import { useEffect, memo } from "react";
-import dynamic from "next/dynamic";
 import useSudoku from "@/hooks/useSudoku";
 import ErrorBoundary from "./ErrorBoundary";
-
-// Dynamically import components with loading states
-const ControlPanel = dynamic(() => import("./ControlPanel"), {
-  loading: () => <div className="h-16 bg-gray-100 animate-pulse rounded-md" />,
-});
-
-const SudokuGrid = dynamic(() => import("./SudokuGrid"), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-md" />,
-});
+import SudokuGrid from "./SudokuGrid";
+import ControlPanel from "./ControlPanel";
 
 // Stats component for game metrics
 const GameStats = memo(
@@ -52,7 +44,16 @@ const SudokuMain = () => {
 
   // Initialize game on mount
   useEffect(() => {
+    console.log("Component mounted, generating new puzzle");
     generateNewPuzzle();
+
+    // For debugging: log puzzle state after a delay
+    const timeoutId = setTimeout(() => {
+      console.log("Current puzzle state:", puzzle);
+      console.log("Current initial puzzle state:", initialPuzzle);
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
   }, [generateNewPuzzle]);
 
   // Handle cell click for number highlighting

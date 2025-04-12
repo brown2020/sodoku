@@ -1,7 +1,7 @@
 // SodokuMain.tsx
 "use client";
 
-import { useEffect, memo } from "react";
+import { useEffect, memo, useRef } from "react";
 import useSudoku from "@/hooks/useSudoku";
 import ErrorBoundary from "./ErrorBoundary";
 import SudokuGrid from "./SudokuGrid";
@@ -42,10 +42,16 @@ const SudokuMain = () => {
     selectNumber,
   } = useSudoku();
 
+  // Reference to track if the initial puzzle has been generated
+  const hasInitialized = useRef(false);
+
   // Initialize game on mount
   useEffect(() => {
-    console.log("Component mounted, generating new puzzle");
-    generateNewPuzzle();
+    if (!hasInitialized.current) {
+      console.log("Component mounted, generating new puzzle");
+      generateNewPuzzle();
+      hasInitialized.current = true;
+    }
 
     // For debugging: log puzzle state after a delay
     const timeoutId = setTimeout(() => {
@@ -54,7 +60,7 @@ const SudokuMain = () => {
     }, 1000);
 
     return () => clearTimeout(timeoutId);
-  }, [generateNewPuzzle]);
+  }, [generateNewPuzzle, puzzle, initialPuzzle]);
 
   // Handle cell click for number highlighting
   const handleCellClick = (number: number) => {

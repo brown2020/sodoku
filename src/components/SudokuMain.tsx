@@ -46,12 +46,20 @@ const SudokuMain = () => {
     difficulty,
     setDifficulty,
     initialPuzzle,
+    selectedNumber,
+    selectNumber,
   } = useSudoku();
 
   // Initialize game on mount
   useEffect(() => {
     generateNewPuzzle();
   }, [generateNewPuzzle]);
+
+  // Handle cell click for number highlighting
+  const handleCellClick = (number: number) => {
+    // Toggle selection: if the same number is clicked again, deselect it
+    selectNumber(selectedNumber === number ? null : number);
+  };
 
   return (
     <div className="container mx-auto px-4 max-w-4xl flex flex-col items-center min-h-screen py-8">
@@ -101,6 +109,8 @@ const SudokuMain = () => {
             isComplete={gameState.isComplete}
             wasAutoSolved={gameState.usedSolver}
             initialPuzzle={initialPuzzle}
+            selectedNumber={selectedNumber}
+            onCellClick={handleCellClick}
           />
         </div>
       </ErrorBoundary>

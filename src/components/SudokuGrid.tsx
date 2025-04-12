@@ -9,6 +9,8 @@ interface SudokuGridProps {
   isComplete: boolean;
   wasAutoSolved: boolean;
   initialPuzzle: number[][];
+  selectedNumber: number | null;
+  onCellClick: (value: number) => void;
 }
 
 const SudokuGrid = memo(
@@ -19,6 +21,8 @@ const SudokuGrid = memo(
     isComplete,
     wasAutoSolved,
     initialPuzzle,
+    selectedNumber,
+    onCellClick,
   }: SudokuGridProps) => {
     const getBorderStyle = (row: number, col: number): React.CSSProperties => {
       const styles: React.CSSProperties = {
@@ -58,6 +62,8 @@ const SudokuGrid = memo(
                         wasAutoSolved && initialPuzzle[rowIndex][colIndex] === 0
                       }
                       isOriginal={initialPuzzle[rowIndex][colIndex] !== 0}
+                      selectedNumber={selectedNumber}
+                      onCellClick={onCellClick}
                     />
                   </td>
                 ))}

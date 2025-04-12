@@ -28,6 +28,7 @@ const useSudoku = () => {
       position: { row: number; col: number };
     }[]
   >([]);
+  const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
 
   // Game settings and status
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
@@ -107,6 +108,11 @@ const useSudoku = () => {
 
   const handleChange = useCallback(
     (row: number, col: number, value: string) => {
+      // Prevent changing original/fixed cells
+      if (initialPuzzle[row][col] !== 0) {
+        return;
+      }
+
       const newValue = parseInt(value) || 0;
       if (newValue > 9) return;
 
@@ -148,7 +154,7 @@ const useSudoku = () => {
         return newPuzzle;
       });
     },
-    []
+    [initialPuzzle]
   );
 
   // checkCompletion function in useSudoku:
@@ -273,6 +279,10 @@ const useSudoku = () => {
     generatePdf(puzzle);
   }, [puzzle]);
 
+  const selectNumber = useCallback((number: number | null) => {
+    setSelectedNumber(number);
+  }, []);
+
   return {
     puzzle,
     conflicts,
@@ -280,6 +290,7 @@ const useSudoku = () => {
     stats,
     difficulty,
     initialPuzzle,
+    selectedNumber,
     generateNewPuzzle,
     handleChange,
     checkCompletion,
@@ -288,6 +299,7 @@ const useSudoku = () => {
     solvePuzzle,
     downloadPdf,
     setDifficulty,
+    selectNumber,
   };
 };
 

@@ -6,6 +6,12 @@
   --animate-shake: shake 0.2s ease-in-out 3;
   --animate-success-cell: success-cell 1s ease-out;
   --animate-mistake: mistake 0.3s ease-in-out;
+  --animate-fade-in: fade-in 0.3s ease-out;
+
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
 
   @keyframes number-enter {
     0% {

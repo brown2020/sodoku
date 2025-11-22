@@ -1,100 +1,65 @@
-// SudokuGrid.tsx
 import React, { memo } from "react";
+import { useGameStore } from "@/store/useGameStore";
 import SudokuCell from "./SudokuCell";
+import { cn } from "@/lib/utils";
 
-interface SudokuGridProps {
-  puzzle: number[][];
-  conflicts: boolean[][];
-  handleChange: (row: number, col: number, value: string) => void;
-  isComplete: boolean;
-  wasAutoSolved: boolean;
-  initialPuzzle: number[][];
-  selectedNumber: number | null;
-  onCellClick: (value: number) => void;
-}
+const SudokuGrid = memo(() => {
+  const puzzle = useGameStore((state) => state.puzzle);
+  const conflicts = useGameStore((state) => state.conflicts);
+  const initialPuzzle = useGameStore((state) => state.initialPuzzle);
+  const selectedNumber = useGameStore((state) => state.selectedNumber);
+  const isComplete = useGameStore((state) => state.status.isComplete);
+  const isSolved = useGameStore((state) => state.status.isSolved);
 
-const SudokuGrid = memo(
-  ({
-    puzzle,
-    conflicts,
-    handleChange,
-    isComplete,
-    wasAutoSolved,
-    initialPuzzle,
-    selectedNumber,
-    onCellClick,
-  }: SudokuGridProps) => {
-    const getBorderStyle = (row: number, col: number): React.CSSProperties => {
-      const styles: React.CSSProperties = {
-        border: "1px solid #374151",
-      };
+  const setCellValue = useGameStore((state) => state.setCellValue);
+  const selectNumber = useGameStore((state) => state.selectNumber);
 
-      if (row % 3 === 0 && row !== 0) styles.borderTop = "2px solid #374151";
-      if (col % 3 === 0 && col !== 0) styles.borderLeft = "2px solid #374151";
-      if (row === 0) styles.borderTop = "2px solid #374151";
-      if (col === 0) styles.borderLeft = "2px solid #374151";
-      if (row === 8) styles.borderBottom = "2px solid #374151";
-      if (col === 8) styles.borderRight = "2px solid #374151";
-
-      return styles;
-    };
-
-    // Handle empty puzzle state
-    if (!puzzle || puzzle.length === 0) {
-      return (
-        <div className="w-full max-w-[500px] mx-auto px-4 h-[500px] flex items-center justify-center">
-          <div className="text-gray-500">Loading puzzle...</div>
-        </div>
-      );
-    }
-
+  if (!puzzle || puzzle.length === 0) {
     return (
-      <div className="w-full max-w-[500px] mx-auto px-4 overflow-auto">
-        <table className="border-collapse mx-auto w-full aspect-square">
-          <tbody>
-            {puzzle.map((row, rowIndex) => (
-              <tr key={rowIndex}>
-                {row.map((cell, colIndex) => (
-                  <td
-                    key={`${rowIndex}-${colIndex}`}
-                    style={getBorderStyle(rowIndex, colIndex)}
-                    className="relative p-0"
-                  >
-                    <SudokuCell
-                      value={cell}
-                      conflict={
-                        conflicts && conflicts[rowIndex]
-                          ? conflicts[rowIndex][colIndex]
-                          : false
-                      }
-                      onChange={(value: string) =>
-                        handleChange(rowIndex, colIndex, value)
-                      }
-                      isComplete={isComplete}
-                      wasAutoSolved={
-                        wasAutoSolved &&
-                        initialPuzzle &&
-                        initialPuzzle[rowIndex] &&
-                        initialPuzzle[rowIndex][colIndex] === 0
-                      }
-                      isOriginal={
-                        initialPuzzle &&
-                        initialPuzzle[rowIndex] &&
-                        initialPuzzle[rowIndex][colIndex] !== 0
-                      }
-                      selectedNumber={selectedNumber}
-                      onCellClick={onCellClick}
-                    />
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="w-full aspect-square flex items-center justify-center bg-slate-100 rounded-lg">
+        <div className="animate-pulse text-slate-400">Loading puzzle...</div>
       </div>
     );
   }
-);
+
+  return (
+    <div className="w-full max-w-md mx-auto bg-slate-800 p-1 rounded-lg shadow-xl">
+      <div className="grid grid-cols-9 gap-px bg-slate-800 border-2 border-slate-800 rounded-lg overflow-hidden">
+        {puzzle.map((row, rowIndex) =>
+          row.map((cell, colIndex) => {
+            // Calculate borders for 3x3 grids
+            const isRightBorder = (colIndex + 1) % 3 === 0 && colIndex !== 8;
+            const isBottomBorder = (rowIndex + 1) % 3 === 0 && rowIndex !== 8;
+
+            return (
+              <div
+                key={`${rowIndex}-${colIndex}`}
+                className={cn(
+                  "aspect-square relative bg-white",
+                  isRightBorder && "mr-[2px]",
+                  isBottomBorder && "mb-[2px]"
+                )}
+              >
+                <SudokuCell
+                  value={cell}
+                  rowIndex={rowIndex}
+                  colIndex={colIndex}
+                  conflict={conflicts[rowIndex][colIndex]}
+                  onChange={setCellValue}
+                  isComplete={isComplete}
+                  isSolved={isSolved}
+                  isOriginal={initialPuzzle[rowIndex][colIndex] !== 0}
+                  selectedNumber={selectedNumber}
+                  onCellClick={selectNumber}
+                />
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+});
 
 SudokuGrid.displayName = "SudokuGrid";
 

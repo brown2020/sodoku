@@ -1,94 +1,96 @@
-// SudokuCell.tsx
 import React, { memo, useCallback } from "react";
+import { cn } from "@/lib/utils";
 
 interface SudokuCellProps {
   value: number;
+  rowIndex: number;
+  colIndex: number;
   conflict: boolean;
-  onChange: (value: string) => void;
+  onChange: (row: number, col: number, value: number) => void;
   isComplete: boolean;
-  wasAutoSolved: boolean;
+  isSolved: boolean;
   isOriginal: boolean;
   selectedNumber: number | null;
-  onCellClick: (value: number) => void;
+  onCellClick: (value: number | null) => void;
 }
 
 const SudokuCell = memo(
   ({
     value,
+    rowIndex,
+    colIndex,
     conflict,
     onChange,
     isComplete,
-    wasAutoSolved,
+    isSolved,
     isOriginal,
     selectedNumber,
     onCellClick,
   }: SudokuCellProps) => {
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        if (value === "" || /^[1-9]$/.test(value)) {
-          onChange(value);
+        const inputValue = e.target.value;
+        // Allow clearing cell or digits 1-9
+        if (inputValue === "") {
+          onChange(rowIndex, colIndex, 0);
+        } else if (/^[1-9]$/.test(inputValue)) {
+          onChange(rowIndex, colIndex, parseInt(inputValue, 10));
         }
       },
-      [onChange]
+      [onChange, rowIndex, colIndex]
     );
 
     const handleClick = useCallback(() => {
       if (value !== 0) {
-        onCellClick(value);
+        onCellClick(value === selectedNumber ? null : value);
+      } else {
+        // If clicking an empty cell, maybe clear selection?
+        // onCellClick(null); 
+        // Actually, standard behavior is usually just selecting numbers to highlight them elsewhere.
       }
-    }, [value, onCellClick]);
+    }, [value, selectedNumber, onCellClick]);
 
     const isHighlighted = value !== 0 && value === selectedNumber;
 
-    const cellClass = `
-      w-full h-full
-      aspect-square
-      flex items-center justify-center
-      text-center
-      text-[clamp(1rem,3vw,1.5rem)]
-      focus:outline-hidden focus:ring-2 focus:ring-blue-500
-      transition-all duration-300
-      ${conflict ? "bg-red-200" : ""}
-      ${
-        isHighlighted
-          ? "bg-green-500 text-white"
-          : wasAutoSolved
-          ? "bg-blue-100 text-blue-700 font-semibold"
-          : isOriginal
-          ? "bg-gray-100 text-gray-800"
-          : "bg-white hover:bg-gray-50"
-      }
-      ${isOriginal ? "font-bold" : ""}
-      cursor-pointer
-    `;
+    const baseStyles = cn(
+      "w-full h-full flex items-center justify-center text-center transition-all duration-200 cursor-pointer select-none",
+      "text-lg sm:text-xl md:text-2xl font-medium",
+      "focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-inset z-10"
+    );
 
-    // For original cells or completed game, use div
+    const stateStyles = cn(
+      conflict && "bg-red-100 text-red-600",
+      !conflict && isHighlighted && "bg-blue-500 text-white",
+      !conflict && !isHighlighted && isSolved && "text-blue-600 bg-blue-50",
+      !conflict && !isHighlighted && isOriginal && "bg-slate-100 font-bold text-slate-900",
+      !conflict && !isHighlighted && !isOriginal && !isSolved && "bg-white hover:bg-slate-50 text-slate-700"
+    );
+
     if (isOriginal || isComplete) {
       return (
-        <div className={cellClass} onClick={handleClick}>
+        <div 
+          className={cn(baseStyles, stateStyles)} 
+          onClick={handleClick}
+          role="button"
+          aria-label={`Cell ${rowIndex + 1}, ${colIndex + 1}, value ${value}`}
+        >
           {value !== 0 ? value : ""}
         </div>
       );
     }
 
-    // For editable cells, use input
     return (
-      <div className="relative w-full h-full">
-        <input
-          type="text"
-          inputMode="numeric"
-          pattern="[1-9]*"
-          value={value !== 0 ? value : ""}
-          onChange={handleChange}
-          className={cellClass}
-          maxLength={1}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleClick();
-          }}
-        />
-      </div>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[1-9]*"
+        value={value !== 0 ? value : ""}
+        onChange={handleChange}
+        onClick={handleClick}
+        className={cn(baseStyles, stateStyles, "caret-transparent")}
+        maxLength={1}
+        aria-label={`Editable cell ${rowIndex + 1}, ${colIndex + 1}`}
+      />
     );
   }
 );

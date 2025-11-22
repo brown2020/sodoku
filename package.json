@@ -9,10 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
     "jspdf": "^3.0.0",
-    "next": "^15.0.0",
+    "lucide-react": "^0.554.0",
+    "next": "^16.0.3",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.4.0",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.8",
@@ -20,7 +24,7 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "eslint": "^9.15.0",
-    "eslint-config-next": "^15.0.0",
+    "eslint-config-next": "^16.0.3",
     "postcss": "^8",
     "tailwindcss": "^4.0.8",
     "typescript": "^5"

@@ -45,7 +45,6 @@ export const generateFullGrid = (): number[][] => {
   ];
 
   try {
-    console.log("Starting grid generation...");
     const grid = Array(9)
       .fill(0)
       .map(() => Array(9).fill(0));
@@ -81,8 +80,6 @@ export const generateFullGrid = (): number[][] => {
     };
 
     const success = fillGrid(grid);
-    console.log("Grid generation complete, success:", success);
-    console.log("Generated grid:", JSON.stringify(grid));
 
     // Check if the grid is valid (no zeros)
     const hasZeros = grid.some((row) => row.some((cell) => cell === 0));
@@ -98,16 +95,10 @@ export const generateFullGrid = (): number[][] => {
   }
 };
 
-// THIS IS THE FIXED removeNumbers FUNCTION
 export const removeNumbers = (
   grid: number[][],
   numbersToRemove: number
 ): number[][] => {
-  console.log(
-    "Starting to remove numbers from grid. Numbers to remove:",
-    numbersToRemove
-  );
-
   // Create a deep copy of the grid
   const puzzle = grid.map((row) => [...row]);
 
@@ -115,8 +106,6 @@ export const removeNumbers = (
   const totalCells = 81;
   const maxRemovable = Math.floor(totalCells * 0.7);
   const actualNumbersToRemove = Math.min(numbersToRemove, maxRemovable);
-
-  console.log("Adjusted number to remove:", actualNumbersToRemove);
 
   // Create an array of all valid positions
   const allPositions = [];
@@ -140,10 +129,8 @@ export const removeNumbers = (
 
   // Ensure we have at least 20 numbers visible
   const filledCount = puzzle.flat().filter((cell) => cell !== 0).length;
-  console.log(`Final filled cells count: ${filledCount}`);
 
   if (filledCount < 20) {
-    console.warn("Too few filled cells, adjusting...");
     // If we have less than 20 filled cells, add back some numbers
     const emptyPositions = allPositions.slice(0, actualNumbersToRemove);
     const neededToAdd = 20 - filledCount;
@@ -152,12 +139,6 @@ export const removeNumbers = (
       const { row, col } = emptyPositions[i];
       puzzle[row][col] = grid[row][col]; // Restore the original number
     }
-
-    console.log(
-      `Adjusted filled cells count: ${
-        puzzle.flat().filter((cell) => cell !== 0).length
-      }`
-    );
   }
 
   return puzzle;

@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useGameStore } from "@/store/useGameStore";
 import { cn } from "@/lib/utils";
@@ -61,18 +61,21 @@ const ControlPanel = memo(() => {
     }))
   );
 
-  const puzzle = useGameStore((state) => state.puzzle);
   const generateNewGame = useGameStore((state) => state.generateNewGame);
   const undoMove = useGameStore((state) => state.undoMove);
   const provideHint = useGameStore((state) => state.provideHint);
   const solveGame = useGameStore((state) => state.solveGame);
   const checkCompletion = useGameStore((state) => state.checkCompletion);
 
-  // Memoize handlers and disabled states
-  const buttons = useMemo(() => {
-    const handleDownload = () => generatePdf(puzzle);
+  // Get puzzle at click time to avoid unnecessary re-renders
+  const handleDownload = useCallback(() => {
+    const puzzle = useGameStore.getState().puzzle;
+    generatePdf(puzzle);
+  }, []);
 
-    return [
+  // Memoize handlers and disabled states
+  const buttons = useMemo(
+    () => [
       { ...BUTTON_CONFIG[0], onClick: generateNewGame, disabled: false },
       { ...BUTTON_CONFIG[1], onClick: undoMove, disabled: false },
       { ...BUTTON_CONFIG[2], onClick: provideHint, disabled: isComplete },
@@ -83,17 +86,18 @@ const ControlPanel = memo(() => {
         disabled: !isPuzzleFilled || isComplete,
       },
       { ...BUTTON_CONFIG[5], onClick: handleDownload, disabled: false },
-    ];
-  }, [
-    generateNewGame,
-    undoMove,
-    provideHint,
-    solveGame,
-    checkCompletion,
-    isComplete,
-    isPuzzleFilled,
-    puzzle,
-  ]);
+    ],
+    [
+      generateNewGame,
+      undoMove,
+      provideHint,
+      solveGame,
+      checkCompletion,
+      handleDownload,
+      isComplete,
+      isPuzzleFilled,
+    ]
+  );
 
   return (
     <div className="flex flex-wrap justify-center gap-3 mb-6 w-full max-w-3xl mx-auto px-4">

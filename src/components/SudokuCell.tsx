@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import { memo, useCallback, type ChangeEvent } from "react";
 import { cn } from "@/lib/utils";
 
 interface SudokuCellProps {
@@ -28,7 +28,7 @@ const SudokuCell = memo(
     onCellClick,
   }: SudokuCellProps) => {
     const handleChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
+      (e: ChangeEvent<HTMLInputElement>) => {
         const inputValue = e.target.value;
         // Allow clearing cell or digits 1-9
         if (inputValue === "") {
@@ -43,10 +43,6 @@ const SudokuCell = memo(
     const handleClick = useCallback(() => {
       if (value !== 0) {
         onCellClick(value === selectedNumber ? null : value);
-      } else {
-        // If clicking an empty cell, maybe clear selection?
-        // onCellClick(null); 
-        // Actually, standard behavior is usually just selecting numbers to highlight them elsewhere.
       }
     }, [value, selectedNumber, onCellClick]);
 

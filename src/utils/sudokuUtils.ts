@@ -51,9 +51,7 @@ export const generateFullGrid = (): number[][] => {
   ];
 
   try {
-    const grid = Array(9)
-      .fill(0)
-      .map(() => Array(9).fill(0));
+    const grid = createEmptyGrid(0);
 
     const fillGrid = (grid: number[][]): boolean => {
       for (let row = 0; row < 9; row++) {

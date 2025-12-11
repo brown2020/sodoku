@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, memo, useRef } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useGameStore } from "@/store/useGameStore";
 import ErrorBoundary from "./ErrorBoundary";
 import SudokuGrid from "./SudokuGrid";
 import ControlPanel from "./ControlPanel";
-import { Difficulty } from "@/types";
+import { DIFFICULTY_SETTINGS, Difficulty } from "@/types";
 import { cn, formatTime } from "@/lib/utils";
+
+// Derive difficulty levels from settings to avoid duplication
+const DIFFICULTY_LEVELS = Object.keys(DIFFICULTY_SETTINGS) as Difficulty[];
 
 // Timer Component to isolate re-renders
 const GameTimer = memo(() => {
@@ -38,8 +42,6 @@ const MoveCounter = memo(() => {
 });
 MoveCounter.displayName = "MoveCounter";
 
-const DIFFICULTY_LEVELS: Difficulty[] = ["easy", "medium", "hard"];
-
 const DifficultySelector = memo(() => {
   const difficulty = useGameStore((state) => state.difficulty);
   const setDifficulty = useGameStore((state) => state.setDifficulty);
@@ -68,8 +70,12 @@ const DifficultySelector = memo(() => {
 DifficultySelector.displayName = "DifficultySelector";
 
 const WinModal = memo(() => {
-  const hasWon = useGameStore((state) => state.status.hasWon);
-  const stats = useGameStore((state) => state.stats);
+  const { hasWon, stats } = useGameStore(
+    useShallow((state) => ({
+      hasWon: state.status.hasWon,
+      stats: state.stats,
+    }))
+  );
   const generateNewGame = useGameStore((state) => state.generateNewGame);
 
   if (!hasWon) return null;

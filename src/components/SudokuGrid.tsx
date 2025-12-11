@@ -2,7 +2,6 @@ import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useGameStore } from "@/store/useGameStore";
 import SudokuCell from "./SudokuCell";
-import { cn } from "@/lib/utils";
 
 const SudokuGrid = memo(() => {
   // Group related state with useShallow for optimal re-renders
@@ -33,40 +32,49 @@ const SudokuGrid = memo(() => {
     );
   }
 
-  return (
-    <div className="w-full max-w-md mx-auto bg-slate-800 p-1 rounded-lg shadow-xl">
-      <div className="grid grid-cols-9 gap-px bg-slate-800 border-2 border-slate-800 rounded-lg overflow-hidden">
-        {puzzle.map((row, rowIndex) =>
-          row.map((cell, colIndex) => {
-            // Calculate borders for 3x3 grids
-            const isRightBorder = (colIndex + 1) % 3 === 0 && colIndex !== 8;
-            const isBottomBorder = (rowIndex + 1) % 3 === 0 && rowIndex !== 8;
+  // Create 3x3 box structure for consistent borders
+  const boxes = [];
+  for (let boxRow = 0; boxRow < 3; boxRow++) {
+    for (let boxCol = 0; boxCol < 3; boxCol++) {
+      const cells = [];
+      for (let cellRow = 0; cellRow < 3; cellRow++) {
+        for (let cellCol = 0; cellCol < 3; cellCol++) {
+          const rowIndex = boxRow * 3 + cellRow;
+          const colIndex = boxCol * 3 + cellCol;
+          const cell = puzzle[rowIndex][colIndex];
 
-            return (
-              <div
-                key={`${rowIndex}-${colIndex}`}
-                className={cn(
-                  "aspect-square relative bg-white",
-                  isRightBorder && "mr-[2px]",
-                  isBottomBorder && "mb-[2px]"
-                )}
-              >
-                <SudokuCell
-                  value={cell}
-                  rowIndex={rowIndex}
-                  colIndex={colIndex}
-                  conflict={conflicts[rowIndex][colIndex]}
-                  onChange={setCellValue}
-                  isComplete={isComplete}
-                  isSolved={isSolved}
-                  isOriginal={initialPuzzle[rowIndex][colIndex] !== 0}
-                  selectedNumber={selectedNumber}
-                  onCellClick={selectNumber}
-                />
-              </div>
-            );
-          })
-        )}
+          cells.push(
+            <SudokuCell
+              key={`${rowIndex}-${colIndex}`}
+              value={cell}
+              rowIndex={rowIndex}
+              colIndex={colIndex}
+              conflict={conflicts[rowIndex][colIndex]}
+              onChange={setCellValue}
+              isComplete={isComplete}
+              isSolved={isSolved}
+              isOriginal={initialPuzzle[rowIndex][colIndex] !== 0}
+              selectedNumber={selectedNumber}
+              onCellClick={selectNumber}
+            />
+          );
+        }
+      }
+      boxes.push(
+        <div
+          key={`box-${boxRow}-${boxCol}`}
+          className="grid grid-cols-3 gap-px bg-slate-400"
+        >
+          {cells}
+        </div>
+      );
+    }
+  }
+
+  return (
+    <div className="w-full max-w-md mx-auto bg-slate-800 p-0.5 rounded-lg shadow-xl">
+      <div className="grid grid-cols-3 gap-0.5 bg-slate-800 rounded-lg overflow-hidden">
+        {boxes}
       </div>
     </div>
   );

@@ -49,7 +49,7 @@ const SudokuCell = memo(
     const isHighlighted = value !== 0 && value === selectedNumber;
 
     const baseStyles = cn(
-      "w-full h-full flex items-center justify-center text-center transition-all duration-200 cursor-pointer select-none",
+      "aspect-square w-full h-full flex items-center justify-center text-center transition-all duration-200 cursor-pointer select-none",
       "text-lg sm:text-xl md:text-2xl font-medium",
       "focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-inset z-10"
     );

@@ -58,14 +58,21 @@ const SudokuCell = memo(
       conflict && "bg-red-100 text-red-600",
       !conflict && isHighlighted && "bg-blue-500 text-white",
       !conflict && !isHighlighted && isSolved && "text-blue-600 bg-blue-50",
-      !conflict && !isHighlighted && isOriginal && "bg-slate-100 font-bold text-slate-900",
-      !conflict && !isHighlighted && !isOriginal && !isSolved && "bg-white hover:bg-slate-50 text-slate-700"
+      !conflict &&
+        !isHighlighted &&
+        isOriginal &&
+        "bg-slate-100 font-bold text-slate-900",
+      !conflict &&
+        !isHighlighted &&
+        !isOriginal &&
+        !isSolved &&
+        "bg-white hover:bg-slate-50 text-slate-700"
     );
 
     if (isOriginal || isComplete) {
       return (
-        <div 
-          className={cn(baseStyles, stateStyles)} 
+        <div
+          className={cn(baseStyles, stateStyles)}
           onClick={handleClick}
           role="button"
           aria-label={`Cell ${rowIndex + 1}, ${colIndex + 1}, value ${value}`}

@@ -1,15 +1,26 @@
-import React, { memo } from "react";
+import { memo } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useGameStore } from "@/store/useGameStore";
 import SudokuCell from "./SudokuCell";
 import { cn } from "@/lib/utils";
 
 const SudokuGrid = memo(() => {
-  const puzzle = useGameStore((state) => state.puzzle);
-  const conflicts = useGameStore((state) => state.conflicts);
-  const initialPuzzle = useGameStore((state) => state.initialPuzzle);
-  const selectedNumber = useGameStore((state) => state.selectedNumber);
-  const isComplete = useGameStore((state) => state.status.isComplete);
-  const isSolved = useGameStore((state) => state.status.isSolved);
+  // Group related state with useShallow for optimal re-renders
+  const { puzzle, conflicts, initialPuzzle, selectedNumber } = useGameStore(
+    useShallow((state) => ({
+      puzzle: state.puzzle,
+      conflicts: state.conflicts,
+      initialPuzzle: state.initialPuzzle,
+      selectedNumber: state.selectedNumber,
+    }))
+  );
+
+  const { isComplete, isSolved } = useGameStore(
+    useShallow((state) => ({
+      isComplete: state.status.isComplete,
+      isSolved: state.status.isSolved,
+    }))
+  );
 
   const setCellValue = useGameStore((state) => state.setCellValue);
   const selectNumber = useGameStore((state) => state.selectNumber);

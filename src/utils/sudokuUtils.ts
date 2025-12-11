@@ -1,5 +1,11 @@
 // sudokuUtils.ts
 
+/**
+ * Creates a 9x9 grid filled with the specified value
+ */
+export const createEmptyGrid = <T>(fill: T): T[][] =>
+  Array.from({ length: 9 }, () => Array(9).fill(fill));
+
 // Utility function to check if a number can be placed in a cell
 const canPlace = (
   grid: number[][],
@@ -146,7 +152,7 @@ export const removeNumbers = (
 
 // Check for conflicts in the current puzzle state
 export const checkConflicts = (currentPuzzle: number[][]): boolean[][] => {
-  const conflicts = Array.from({ length: 9 }, () => Array(9).fill(false));
+  const conflicts = createEmptyGrid(false);
 
   for (let row = 0; row < 9; row++) {
     for (let col = 0; col < 9; col++) {
@@ -185,5 +191,3 @@ export const checkConflicts = (currentPuzzle: number[][]): boolean[][] => {
 
   return conflicts;
 };
-
-export { canPlace };

@@ -1,14 +1,34 @@
-export type Difficulty = 'easy' | 'medium' | 'hard';
+export type Difficulty = "easy" | "medium" | "hard";
+
+export const DIFFICULTY_SETTINGS: Record<Difficulty, number> = {
+  easy: 30,
+  medium: 40,
+  hard: 50,
+} as const;
 
 export type CellPosition = {
   row: number;
   col: number;
 };
 
+/** Stores only the delta for memory efficiency */
 export type Move = {
-  puzzle: number[][];
   position: CellPosition;
+  previousValue: number;
 };
+
+export interface GameStatus {
+  isPuzzleFilled: boolean;
+  isComplete: boolean;
+  isSolved: boolean; // Used solver
+  hasWon: boolean; // Legitimate win
+}
+
+export interface GameStats {
+  moveCount: number;
+  timeElapsed: number;
+  startTime: number;
+}
 
 export interface GameState {
   puzzle: number[][];
@@ -17,17 +37,8 @@ export interface GameState {
   conflicts: boolean[][];
   history: Move[];
   difficulty: Difficulty;
-  status: {
-    isPuzzleFilled: boolean;
-    isComplete: boolean;
-    isSolved: boolean; // Used solver
-    hasWon: boolean; // Legitimate win
-  };
-  stats: {
-    moveCount: number;
-    timeElapsed: number;
-    startTime: number;
-  };
+  status: GameStatus;
+  stats: GameStats;
   selectedNumber: number | null;
 }
 
@@ -40,7 +51,6 @@ export interface GameActions {
   undoMove: () => void;
   provideHint: () => void;
   solveGame: () => void;
-  resetGame: () => void;
   updateTimer: () => void;
+  clearConflictTimeout: () => void;
 }
-

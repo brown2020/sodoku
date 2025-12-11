@@ -1,22 +1,30 @@
-import { create } from 'zustand';
-import { checkConflicts, generateFullGrid, removeNumbers } from '@/utils/sudokuUtils';
-import { Difficulty, GameState, GameActions } from '@/types';
+import { create } from "zustand";
+import {
+  checkConflicts,
+  generateFullGrid,
+  removeNumbers,
+  createEmptyGrid,
+} from "@/utils/sudokuUtils";
+import {
+  Difficulty,
+  GameState,
+  GameActions,
+  DIFFICULTY_SETTINGS,
+} from "@/types";
 
-interface GameStore extends GameState, GameActions {}
+interface GameStore extends GameState, GameActions {
+  conflictTimeoutId: ReturnType<typeof setTimeout> | null;
+}
 
-const DIFFICULTY_SETTINGS = {
-  easy: 30,
-  medium: 40,
-  hard: 50,
-};
-
-const getInitialState = (): GameState => ({
-  puzzle: Array.from({ length: 9 }, () => Array(9).fill(0)),
-  initialPuzzle: Array.from({ length: 9 }, () => Array(9).fill(0)),
-  solution: Array.from({ length: 9 }, () => Array(9).fill(0)),
-  conflicts: Array.from({ length: 9 }, () => Array(9).fill(false)),
+const getInitialState = (): GameState & {
+  conflictTimeoutId: ReturnType<typeof setTimeout> | null;
+} => ({
+  puzzle: createEmptyGrid(0),
+  initialPuzzle: createEmptyGrid(0),
+  solution: createEmptyGrid(0),
+  conflicts: createEmptyGrid(false),
   history: [],
-  difficulty: 'medium',
+  difficulty: "medium",
   status: {
     isPuzzleFilled: false,
     isComplete: false,
@@ -29,10 +37,19 @@ const getInitialState = (): GameState => ({
     startTime: 0,
   },
   selectedNumber: null,
+  conflictTimeoutId: null,
 });
 
 export const useGameStore = create<GameStore>((set, get) => ({
   ...getInitialState(),
+
+  clearConflictTimeout: () => {
+    const { conflictTimeoutId } = get();
+    if (conflictTimeoutId) {
+      clearTimeout(conflictTimeoutId);
+      set({ conflictTimeoutId: null });
+    }
+  },
 
   setDifficulty: (difficulty: Difficulty) => {
     set({ difficulty });
@@ -41,15 +58,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   generateNewGame: () => {
     const { difficulty } = get();
+
+    // Clear any pending conflict timeout
+    get().clearConflictTimeout();
+
     const fullGrid = generateFullGrid();
     const numbersToRemove = DIFFICULTY_SETTINGS[difficulty];
     const newPuzzle = removeNumbers(fullGrid, numbersToRemove);
-    
+
     set({
-      puzzle: newPuzzle.map(row => [...row]),
-      initialPuzzle: newPuzzle.map(row => [...row]),
+      puzzle: newPuzzle.map((row) => [...row]),
+      initialPuzzle: newPuzzle.map((row) => [...row]),
       solution: fullGrid,
-      conflicts: Array.from({ length: 9 }, () => Array(9).fill(false)),
+      conflicts: createEmptyGrid(false),
       history: [],
       status: {
         isPuzzleFilled: false,
@@ -72,20 +93,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Prevent editing initial cells or if game is complete
     if (initialPuzzle[row][col] !== 0 || status.isComplete) return;
 
+    // Store the previous value for delta-based history
+    const previousValue = puzzle[row][col];
+
     const newPuzzle = puzzle.map((r) => [...r]);
     newPuzzle[row][col] = value;
 
     // Check if filled
     const isPuzzleFilled = newPuzzle.every((r) => r.every((c) => c !== 0));
-    
+
     // Update conflicts
     const newConflicts = checkConflicts(newPuzzle);
 
-    // Update history
-    const newHistory = [
-      ...history,
-      { puzzle: puzzle.map(r => [...r]), position: { row, col } }
-    ];
+    // Update history with delta (only position + previous value)
+    const newHistory = [...history, { position: { row, col }, previousValue }];
 
     set({
       puzzle: newPuzzle,
@@ -108,10 +129,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   checkCompletion: () => {
     const { puzzle, solution, status } = get();
-    
+
+    // Clear any existing timeout
+    get().clearConflictTimeout();
+
     let isCorrect = true;
-    const newConflicts = Array.from({ length: 9 }, () => Array(9).fill(false));
-    
+    const newConflicts = createEmptyGrid(false);
+
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {
         if (puzzle[i][j] !== solution[i][j]) {
@@ -130,29 +154,40 @@ export const useGameStore = create<GameStore>((set, get) => ({
           isComplete: true,
           hasWon: !status.isSolved,
         },
-        conflicts: Array.from({ length: 9 }, () => Array(9).fill(false)),
+        conflicts: createEmptyGrid(false),
       });
     } else {
-      set({ conflicts: newConflicts });
-      // Clear conflicts after 2 seconds
-      setTimeout(() => {
-        set((state) => ({
-          conflicts: Array.from({ length: 9 }, () => Array(9).fill(false)),
-        }));
+      // Store timeout ID so we can clear it if needed
+      const timeoutId = setTimeout(() => {
+        set({
+          conflicts: createEmptyGrid(false),
+          conflictTimeoutId: null,
+        });
       }, 2000);
+
+      set({
+        conflicts: newConflicts,
+        conflictTimeoutId: timeoutId,
+      });
     }
   },
 
   undoMove: () => {
-    const { history, stats } = get();
+    const { history, puzzle, stats } = get();
     if (history.length === 0) return;
 
     const lastMove = history[history.length - 1];
     const newHistory = history.slice(0, -1);
-    const conflicts = checkConflicts(lastMove.puzzle);
+
+    // Apply the delta - restore previous value
+    const newPuzzle = puzzle.map((r) => [...r]);
+    newPuzzle[lastMove.position.row][lastMove.position.col] =
+      lastMove.previousValue;
+
+    const conflicts = checkConflicts(newPuzzle);
 
     set({
-      puzzle: lastMove.puzzle,
+      puzzle: newPuzzle,
       history: newHistory,
       conflicts,
       stats: {
@@ -176,8 +211,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     if (emptyCells.length > 0) {
-      const { row, col } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-      const newPuzzle = puzzle.map(r => [...r]);
+      const { row, col } =
+        emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      const newPuzzle = puzzle.map((r) => [...r]);
       newPuzzle[row][col] = solution[row][col];
 
       set({
@@ -192,9 +228,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   solveGame: () => {
     const { solution } = get();
+
+    // Clear any pending conflict timeout
+    get().clearConflictTimeout();
+
     set({
-      puzzle: solution.map(r => [...r]),
-      conflicts: Array.from({ length: 9 }, () => Array(9).fill(false)),
+      puzzle: solution.map((r) => [...r]),
+      conflicts: createEmptyGrid(false),
       status: {
         isPuzzleFilled: true,
         isComplete: true,
@@ -202,11 +242,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
         hasWon: false,
       },
     });
-  },
-
-  resetGame: () => {
-    const { difficulty } = get();
-    get().setDifficulty(difficulty); // Re-triggers generation
   },
 
   updateTimer: () => {
@@ -221,4 +256,3 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 }));
-

@@ -6,10 +6,10 @@ import ErrorBoundary from "./ErrorBoundary";
 import SudokuGrid from "./SudokuGrid";
 import ControlPanel from "./ControlPanel";
 import { Difficulty } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, formatTime } from "@/lib/utils";
 
 // Timer Component to isolate re-renders
-const GameTimer = () => {
+const GameTimer = memo(() => {
   const timeElapsed = useGameStore((state) => state.stats.timeElapsed);
   const updateTimer = useGameStore((state) => state.updateTimer);
   const isComplete = useGameStore((state) => state.status.isComplete);
@@ -20,36 +20,34 @@ const GameTimer = () => {
     return () => clearInterval(interval);
   }, [updateTimer, isComplete]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
   return (
     <div className="text-xl font-mono font-bold text-slate-700">
       {formatTime(timeElapsed)}
     </div>
   );
-};
+});
+GameTimer.displayName = "GameTimer";
 
-const MoveCounter = () => {
+const MoveCounter = memo(() => {
   const moveCount = useGameStore((state) => state.stats.moveCount);
   return (
     <div className="text-slate-600">
       Moves: <span className="font-bold text-slate-800">{moveCount}</span>
     </div>
   );
-};
+});
+MoveCounter.displayName = "MoveCounter";
 
-const DifficultySelector = () => {
+const DIFFICULTY_LEVELS: Difficulty[] = ["easy", "medium", "hard"];
+
+const DifficultySelector = memo(() => {
   const difficulty = useGameStore((state) => state.difficulty);
   const setDifficulty = useGameStore((state) => state.setDifficulty);
 
   return (
     <div className="flex justify-center mb-6">
       <div className="inline-flex bg-slate-100 p-1 rounded-lg shadow-inner">
-        {(["easy", "medium", "hard"] as Difficulty[]).map((level) => (
+        {DIFFICULTY_LEVELS.map((level) => (
           <button
             key={level}
             onClick={() => setDifficulty(level)}
@@ -66,12 +64,15 @@ const DifficultySelector = () => {
       </div>
     </div>
   );
-};
+});
+DifficultySelector.displayName = "DifficultySelector";
 
-const WinModal = () => {
-  const { status, stats, generateNewGame } = useGameStore();
+const WinModal = memo(() => {
+  const hasWon = useGameStore((state) => state.status.hasWon);
+  const stats = useGameStore((state) => state.stats);
+  const generateNewGame = useGameStore((state) => state.generateNewGame);
 
-  if (!status.hasWon) return null;
+  if (!hasWon) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 px-4 transition-opacity duration-300 animate-fade-in">
@@ -99,8 +100,7 @@ const WinModal = () => {
           <span className="font-bold text-slate-800">{stats.moveCount}</span>{" "}
           moves and{" "}
           <span className="font-bold text-slate-800">
-            {Math.floor(stats.timeElapsed / 60)}:
-            {(stats.timeElapsed % 60).toString().padStart(2, "0")}
+            {formatTime(stats.timeElapsed)}
           </span>
           .
         </p>
@@ -113,7 +113,8 @@ const WinModal = () => {
       </div>
     </div>
   );
-};
+});
+WinModal.displayName = "WinModal";
 
 const SudokuMain = () => {
   const generateNewGame = useGameStore((state) => state.generateNewGame);

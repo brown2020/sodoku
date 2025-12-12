@@ -1,50 +1,68 @@
-import { memo, useCallback, type ChangeEvent } from "react";
+import { memo, useCallback, type ChangeEvent, type ClipboardEvent } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/lib/utils";
+import { useGameStore } from "@/store/useGameStore";
+import { toIndex } from "@/utils/gameEngine";
 
 interface SudokuCellProps {
-  value: number;
   rowIndex: number;
   colIndex: number;
-  conflict: boolean;
-  onChange: (row: number, col: number, value: number) => void;
-  isComplete: boolean;
-  isSolved: boolean;
-  isOriginal: boolean;
-  selectedNumber: number | null;
-  onCellClick: (value: number | null) => void;
 }
 
 const SudokuCell = memo(
-  ({
-    value,
-    rowIndex,
-    colIndex,
-    conflict,
-    onChange,
-    isComplete,
-    isSolved,
-    isOriginal,
-    selectedNumber,
-    onCellClick,
-  }: SudokuCellProps) => {
+  ({ rowIndex, colIndex }: SudokuCellProps) => {
+    const idx = toIndex(rowIndex, colIndex);
+    const {
+      value,
+      conflict,
+      isOriginal,
+      isComplete,
+      isSolved,
+      selectedNumber,
+      setCellValue,
+      selectNumber,
+    } = useGameStore(
+      useShallow((state) => ({
+        value: state.puzzle[idx] ?? 0,
+        conflict: (state.conflicts[idx] ?? 0) === 1,
+        isOriginal: (state.initialPuzzle[idx] ?? 0) !== 0,
+        isComplete: state.status.isComplete,
+        isSolved: state.status.isSolved,
+        selectedNumber: state.selectedNumber,
+        setCellValue: state.setCellValue,
+        selectNumber: state.selectNumber,
+      }))
+    );
+
     const handleChange = useCallback(
       (e: ChangeEvent<HTMLInputElement>) => {
         const inputValue = e.target.value;
         // Allow clearing cell or digits 1-9
         if (inputValue === "") {
-          onChange(rowIndex, colIndex, 0);
+          setCellValue(rowIndex, colIndex, 0);
         } else if (/^[1-9]$/.test(inputValue)) {
-          onChange(rowIndex, colIndex, parseInt(inputValue, 10));
+          setCellValue(rowIndex, colIndex, parseInt(inputValue, 10));
         }
       },
-      [onChange, rowIndex, colIndex]
+      [setCellValue, rowIndex, colIndex]
     );
 
     const handleClick = useCallback(() => {
       if (value !== 0) {
-        onCellClick(value === selectedNumber ? null : value);
+        selectNumber(value === selectedNumber ? null : value);
       }
-    }, [value, selectedNumber, onCellClick]);
+    }, [value, selectedNumber, selectNumber]);
+
+    const handlePaste = useCallback(
+      (e: ClipboardEvent<HTMLInputElement>) => {
+        const text = e.clipboardData.getData("text").trim();
+        const match = text.match(/[1-9]/);
+        if (!match) return;
+        e.preventDefault();
+        setCellValue(rowIndex, colIndex, parseInt(match[0], 10));
+      },
+      [setCellValue, rowIndex, colIndex]
+    );
 
     const isHighlighted = value !== 0 && value === selectedNumber;
 
@@ -84,14 +102,16 @@ const SudokuCell = memo(
 
     return (
       <input
-        type="text"
+        type="tel"
         inputMode="numeric"
         pattern="[1-9]*"
         value={value !== 0 ? value : ""}
         onChange={handleChange}
         onClick={handleClick}
+        onPaste={handlePaste}
         className={cn(baseStyles, stateStyles, "caret-transparent")}
         maxLength={1}
+        autoComplete="off"
         aria-label={`Editable cell ${rowIndex + 1}, ${colIndex + 1}`}
       />
     );

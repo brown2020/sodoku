@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { generatePdf } from "@/utils/generatePdf";
+import { computeIsFilled, flatToGrid } from "@/utils/gameEngine";
 
 interface ButtonConfig {
   label: string;
@@ -57,7 +58,7 @@ const ControlPanel = memo(() => {
   const { isComplete, isPuzzleFilled } = useGameStore(
     useShallow((state) => ({
       isComplete: state.status.isComplete,
-      isPuzzleFilled: state.status.isPuzzleFilled,
+      isPuzzleFilled: computeIsFilled(state.puzzle),
     }))
   );
 
@@ -70,14 +71,14 @@ const ControlPanel = memo(() => {
   // Get puzzle at click time to avoid unnecessary re-renders
   const handleDownload = useCallback(() => {
     const puzzle = useGameStore.getState().puzzle;
-    generatePdf(puzzle);
+    generatePdf(flatToGrid(puzzle));
   }, []);
 
   // Memoize handlers and disabled states
   const buttons = useMemo(
     () => [
       { ...BUTTON_CONFIG[0], onClick: generateNewGame, disabled: false },
-      { ...BUTTON_CONFIG[1], onClick: undoMove, disabled: false },
+      { ...BUTTON_CONFIG[1], onClick: undoMove, disabled: isComplete },
       { ...BUTTON_CONFIG[2], onClick: provideHint, disabled: isComplete },
       { ...BUTTON_CONFIG[3], onClick: solveGame, disabled: isComplete },
       {

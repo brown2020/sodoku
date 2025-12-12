@@ -3,7 +3,6 @@
 import { useEffect, memo, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useGameStore } from "@/store/useGameStore";
-import ErrorBoundary from "./ErrorBoundary";
 import SudokuGrid from "./SudokuGrid";
 import ControlPanel from "./ControlPanel";
 import { DIFFICULTY_SETTINGS, Difficulty } from "@/types";
@@ -150,17 +149,9 @@ const SudokuMain = () => {
           <GameTimer />
         </div>
 
-        <ErrorBoundary
-          fallback={
-            <div className="p-4 text-red-500 bg-red-50 rounded-lg">
-              Something went wrong with the game board.
-            </div>
-          }
-        >
-          <div className="w-full mb-8">
-            <SudokuGrid />
-          </div>
-        </ErrorBoundary>
+        <div className="w-full mb-8">
+          <SudokuGrid />
+        </div>
 
         <ControlPanel />
 

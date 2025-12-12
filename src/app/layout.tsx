@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sodoku Demo",
-  description: "Sodoku using Next.js",
+  title: "Sudoku",
+  description: "Sudoku using Next.js",
 };
 
 export default function RootLayout({

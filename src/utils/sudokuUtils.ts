@@ -148,44 +148,4 @@ export const removeNumbers = (
   return puzzle;
 };
 
-// Check for conflicts in the current puzzle state
-export const checkConflicts = (currentPuzzle: number[][]): boolean[][] => {
-  const conflicts = createEmptyGrid(false);
-
-  for (let row = 0; row < 9; row++) {
-    for (let col = 0; col < 9; col++) {
-      const value = currentPuzzle[row][col];
-      if (value === 0) continue;
-
-      // Check row
-      for (let c = 0; c < 9; c++) {
-        if (c !== col && currentPuzzle[row][c] === value) {
-          conflicts[row][col] = true;
-          conflicts[row][c] = true;
-        }
-      }
-
-      // Check column
-      for (let r = 0; r < 9; r++) {
-        if (r !== row && currentPuzzle[r][col] === value) {
-          conflicts[row][col] = true;
-          conflicts[r][col] = true;
-        }
-      }
-
-      // Check 3x3 box
-      const boxRow = Math.floor(row / 3) * 3;
-      const boxCol = Math.floor(col / 3) * 3;
-      for (let r = boxRow; r < boxRow + 3; r++) {
-        for (let c = boxCol; c < boxCol + 3; c++) {
-          if ((r !== row || c !== col) && currentPuzzle[r][c] === value) {
-            conflicts[row][col] = true;
-            conflicts[r][c] = true;
-          }
-        }
-      }
-    }
-  }
-
-  return conflicts;
-};
+// NOTE: conflict detection for gameplay moved to `src/utils/gameEngine.ts` for performance.

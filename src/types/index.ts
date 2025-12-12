@@ -18,7 +18,6 @@ export type Move = {
 };
 
 export interface GameStatus {
-  isPuzzleFilled: boolean;
   isComplete: boolean;
   isSolved: boolean; // Used solver
   hasWon: boolean; // Legitimate win
@@ -31,10 +30,14 @@ export interface GameStats {
 }
 
 export interface GameState {
-  puzzle: number[][];
-  initialPuzzle: number[][];
-  solution: number[][];
-  conflicts: boolean[][];
+  /** Flat 81-length puzzle (row-major). Values are 0..9. */
+  puzzle: Uint8Array;
+  /** Flat 81-length immutable original puzzle (row-major). Values are 0..9. */
+  initialPuzzle: Uint8Array;
+  /** Flat 81-length solution (row-major). Values are 1..9. */
+  solution: Uint8Array;
+  /** Flat 81-length conflict flags (0 | 1). */
+  conflicts: Uint8Array;
   history: Move[];
   difficulty: Difficulty;
   status: GameStatus;

@@ -1,16 +1,18 @@
 import { create } from "zustand";
-import {
-  checkConflicts,
-  generateFullGrid,
-  removeNumbers,
-  createEmptyGrid,
-} from "@/utils/sudokuUtils";
+import { generateFullGrid, removeNumbers } from "@/utils/sudokuUtils";
 import {
   Difficulty,
   GameState,
   GameActions,
   DIFFICULTY_SETTINGS,
 } from "@/types";
+import {
+  computeConflicts,
+  computeIncorrectCells,
+  fromIndex,
+  gridToFlat,
+  toIndex,
+} from "@/utils/gameEngine";
 
 interface GameStore extends GameState, GameActions {
   conflictTimeoutId: ReturnType<typeof setTimeout> | null;
@@ -19,14 +21,13 @@ interface GameStore extends GameState, GameActions {
 const getInitialState = (): GameState & {
   conflictTimeoutId: ReturnType<typeof setTimeout> | null;
 } => ({
-  puzzle: createEmptyGrid(0),
-  initialPuzzle: createEmptyGrid(0),
-  solution: createEmptyGrid(0),
-  conflicts: createEmptyGrid(false),
+  puzzle: new Uint8Array(81),
+  initialPuzzle: new Uint8Array(81),
+  solution: new Uint8Array(81),
+  conflicts: new Uint8Array(81),
   history: [],
   difficulty: "medium",
   status: {
-    isPuzzleFilled: false,
     isComplete: false,
     isSolved: false,
     hasWon: false,
@@ -66,14 +67,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const numbersToRemove = DIFFICULTY_SETTINGS[difficulty];
     const newPuzzle = removeNumbers(fullGrid, numbersToRemove);
 
+    const puzzleFlat = gridToFlat(newPuzzle);
+    const solutionFlat = gridToFlat(fullGrid);
+
     set({
-      puzzle: newPuzzle.map((row) => [...row]),
-      initialPuzzle: newPuzzle.map((row) => [...row]),
-      solution: fullGrid,
-      conflicts: createEmptyGrid(false),
+      puzzle: puzzleFlat,
+      initialPuzzle: puzzleFlat.slice(),
+      solution: solutionFlat,
+      conflicts: new Uint8Array(81),
       history: [],
       status: {
-        isPuzzleFilled: false,
         isComplete: false,
         isSolved: false,
         hasWon: false,
@@ -89,33 +92,26 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setCellValue: (row: number, col: number, value: number) => {
     const { puzzle, initialPuzzle, status, history, stats } = get();
+    const idx = toIndex(row, col);
 
     // Prevent editing initial cells or if game is complete
-    if (initialPuzzle[row][col] !== 0 || status.isComplete) return;
+    if ((initialPuzzle[idx] ?? 0) !== 0 || status.isComplete) return;
 
     // Store the previous value for delta-based history
-    const previousValue = puzzle[row][col];
+    const previousValue = puzzle[idx] ?? 0;
 
-    const newPuzzle = puzzle.map((r) => [...r]);
-    newPuzzle[row][col] = value;
-
-    // Check if filled
-    const isPuzzleFilled = newPuzzle.every((r) => r.every((c) => c !== 0));
-
-    // Update conflicts
-    const newConflicts = checkConflicts(newPuzzle);
+    const nextPuzzle = puzzle.slice();
+    nextPuzzle[idx] = value;
 
     // Update history with delta (only position + previous value)
     const newHistory = [...history, { position: { row, col }, previousValue }];
 
+    const newConflicts = computeConflicts(nextPuzzle);
+
     set({
-      puzzle: newPuzzle,
+      puzzle: nextPuzzle,
       conflicts: newConflicts,
       history: newHistory,
-      status: {
-        ...status,
-        isPuzzleFilled,
-      },
       stats: {
         ...stats,
         moveCount: stats.moveCount + 1,
@@ -133,19 +129,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Clear any existing timeout
     get().clearConflictTimeout();
 
-    let isCorrect = true;
-    const newConflicts = createEmptyGrid(false);
-
-    for (let i = 0; i < 9; i++) {
-      for (let j = 0; j < 9; j++) {
-        if (puzzle[i][j] !== solution[i][j]) {
-          isCorrect = false;
-          if (puzzle[i][j] !== 0) {
-            newConflicts[i][j] = true;
-          }
-        }
-      }
-    }
+    const isCorrect = puzzle.every((v, i) => v === solution[i]);
 
     if (isCorrect) {
       set({
@@ -154,40 +138,41 @@ export const useGameStore = create<GameStore>((set, get) => ({
           isComplete: true,
           hasWon: !status.isSolved,
         },
-        conflicts: createEmptyGrid(false),
+        conflicts: new Uint8Array(81),
       });
     } else {
+      const incorrect = computeIncorrectCells(puzzle, solution);
       // Store timeout ID so we can clear it if needed
       const timeoutId = setTimeout(() => {
         set({
-          conflicts: createEmptyGrid(false),
+          conflicts: new Uint8Array(81),
           conflictTimeoutId: null,
         });
       }, 2000);
 
       set({
-        conflicts: newConflicts,
+        conflicts: incorrect,
         conflictTimeoutId: timeoutId,
       });
     }
   },
 
   undoMove: () => {
-    const { history, puzzle, stats } = get();
+    const { history, puzzle, stats, status } = get();
     if (history.length === 0) return;
+    if (status.isComplete) return;
 
     const lastMove = history[history.length - 1];
     const newHistory = history.slice(0, -1);
 
-    // Apply the delta - restore previous value
-    const newPuzzle = puzzle.map((r) => [...r]);
-    newPuzzle[lastMove.position.row][lastMove.position.col] =
-      lastMove.previousValue;
+    const idx = toIndex(lastMove.position.row, lastMove.position.col);
+    const nextPuzzle = puzzle.slice();
+    nextPuzzle[idx] = lastMove.previousValue;
 
-    const conflicts = checkConflicts(newPuzzle);
+    const conflicts = computeConflicts(nextPuzzle);
 
     set({
-      puzzle: newPuzzle,
+      puzzle: nextPuzzle,
       history: newHistory,
       conflicts,
       stats: {
@@ -198,26 +183,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   provideHint: () => {
-    const { puzzle, solution, status, stats } = get();
+    const { puzzle, solution, status, stats, history } = get();
     if (status.isComplete) return;
 
-    const emptyCells: { row: number; col: number }[] = [];
-    for (let i = 0; i < 9; i++) {
-      for (let j = 0; j < 9; j++) {
-        if (puzzle[i][j] === 0) {
-          emptyCells.push({ row: i, col: j });
-        }
-      }
+    const emptyIndexes: number[] = [];
+    for (let i = 0; i < 81; i++) {
+      if (puzzle[i] === 0) emptyIndexes.push(i);
     }
 
-    if (emptyCells.length > 0) {
-      const { row, col } =
-        emptyCells[Math.floor(Math.random() * emptyCells.length)];
-      const newPuzzle = puzzle.map((r) => [...r]);
-      newPuzzle[row][col] = solution[row][col];
+    if (emptyIndexes.length > 0) {
+      const idx = emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
+      const previousValue = puzzle[idx] ?? 0;
+      const nextPuzzle = puzzle.slice();
+      nextPuzzle[idx] = solution[idx] ?? 0;
+      const { row, col } = fromIndex(idx);
+      const newHistory = [...history, { position: { row, col }, previousValue }];
+      const conflicts = computeConflicts(nextPuzzle);
 
       set({
-        puzzle: newPuzzle,
+        puzzle: nextPuzzle,
+        history: newHistory,
+        conflicts,
         stats: {
           ...stats,
           moveCount: stats.moveCount + 1,
@@ -233,10 +219,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().clearConflictTimeout();
 
     set({
-      puzzle: solution.map((r) => [...r]),
-      conflicts: createEmptyGrid(false),
+      puzzle: solution.slice(),
+      conflicts: new Uint8Array(81),
       status: {
-        isPuzzleFilled: true,
         isComplete: true,
         isSolved: true,
         hasWon: false,

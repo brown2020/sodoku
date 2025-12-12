@@ -2,7 +2,7 @@
 
 A modern, performant Sudoku game built with Next.js 16, React 19, TypeScript, and Tailwind CSS 4. Features intelligent puzzle generation, real-time validation, and a beautiful responsive interface.
 
-![Sudoku Game Screenshot](./screenshot.png)
+![Sudoku Game Screenshot](./public/screenshot.png)
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://react.dev/)

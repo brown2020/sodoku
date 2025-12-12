@@ -33,7 +33,12 @@ const SudokuGrid = memo(() => {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto bg-slate-800 p-0.5 rounded-lg shadow-xl">
+    <div
+      className="w-full max-w-md mx-auto bg-slate-800 p-0.5 rounded-lg shadow-xl"
+      role="grid"
+      aria-rowcount={9}
+      aria-colcount={9}
+    >
       <div className="grid grid-cols-3 gap-0.5 bg-slate-800 rounded-lg overflow-hidden">
         {boxes}
       </div>

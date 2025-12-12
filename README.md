@@ -35,7 +35,7 @@ A modern, performant Sudoku game built with Next.js 16, React 19, TypeScript, an
 ### User Experience
 
 - **Responsive Design** - Optimized for desktop, tablet, and mobile
-- **Keyboard Support** - Full number pad and navigation support
+- **Keyboard Support** - Type 1-9 and use arrow keys to move between cells
 - **Touch Optimized** - Mobile-friendly input handling
 - **Progress Tracking** - Move counter and elapsed time
 - **Win Detection** - Celebration modal on puzzle completion
@@ -113,7 +113,6 @@ sodoku/
 │   │
 │   ├── components/
 │   │   ├── ControlPanel.tsx   # Game control buttons
-│   │   ├── ErrorBoundary.tsx  # Error handling wrapper
 │   │   ├── SudokuCell.tsx     # Individual cell (input/display)
 │   │   ├── SudokuGrid.tsx     # 9x9 grid with 3x3 boxes
 │   │   └── SudokuMain.tsx     # Main game container & sub-components
@@ -150,13 +149,14 @@ The game uses **Zustand** for global state management with a single store:
 ```typescript
 // Key state slices
 interface GameState {
-  puzzle: number[][]; // Current puzzle state
-  initialPuzzle: number[][]; // Original puzzle (for checking editable cells)
-  solution: number[][]; // Complete solution
-  conflicts: boolean[][]; // Conflict highlighting
+  puzzle: Uint8Array; // Flat 81-length current puzzle (row-major)
+  initialPuzzle: Uint8Array; // Flat original puzzle (immutable cells)
+  solution: Uint8Array; // Flat solution
+  ruleConflicts: Uint8Array; // Live duplicate conflicts
+  checkHighlights: Uint8Array; // Incorrect-cell highlights after "Check"
   history: Move[]; // Undo history (delta-based)
   difficulty: Difficulty; // easy | medium | hard
-  status: GameStatus; // isPuzzleFilled, isComplete, isSolved, hasWon
+  status: GameStatus; // isComplete, isSolved, hasWon
   stats: GameStats; // moveCount, timeElapsed, startTime
   selectedNumber: number | null; // For number highlighting
 }
@@ -227,7 +227,7 @@ Contributions are welcome! Please follow these steps:
 ## Roadmap
 
 - [ ] Pencil marks (candidate numbers)
-- [ ] Keyboard arrow navigation
+- [x] Keyboard arrow navigation
 - [ ] Local storage persistence
 - [ ] Dark mode support
 - [ ] Statistics tracking

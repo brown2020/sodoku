@@ -36,8 +36,10 @@ export interface GameState {
   initialPuzzle: Uint8Array;
   /** Flat 81-length solution (row-major). Values are 1..9. */
   solution: Uint8Array;
-  /** Flat 81-length conflict flags (0 | 1). */
-  conflicts: Uint8Array;
+  /** Live Sudoku rule conflicts (duplicates in row/col/box). */
+  ruleConflicts: Uint8Array;
+  /** "Check" button highlights (incorrect filled cells); cleared after a timeout or next edit. */
+  checkHighlights: Uint8Array;
   history: Move[];
   difficulty: Difficulty;
   status: GameStatus;

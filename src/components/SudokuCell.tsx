@@ -1,4 +1,10 @@
-import { memo, useCallback, type ChangeEvent, type ClipboardEvent } from "react";
+import {
+  memo,
+  useCallback,
+  type ChangeEvent,
+  type ClipboardEvent,
+  type KeyboardEvent,
+} from "react";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/lib/utils";
 import { useGameStore } from "@/store/useGameStore";
@@ -24,7 +30,9 @@ const SudokuCell = memo(
     } = useGameStore(
       useShallow((state) => ({
         value: state.puzzle[idx] ?? 0,
-        conflict: (state.conflicts[idx] ?? 0) === 1,
+        conflict:
+          (state.ruleConflicts[idx] ?? 0) === 1 ||
+          (state.checkHighlights[idx] ?? 0) === 1,
         isOriginal: (state.initialPuzzle[idx] ?? 0) !== 0,
         isComplete: state.status.isComplete,
         isSolved: state.status.isSolved,
@@ -48,10 +56,46 @@ const SudokuCell = memo(
     );
 
     const handleClick = useCallback(() => {
-      if (value !== 0) {
-        selectNumber(value === selectedNumber ? null : value);
+      if (value === 0) {
+        selectNumber(null);
+        return;
       }
+      selectNumber(value === selectedNumber ? null : value);
     }, [value, selectedNumber, selectNumber]);
+
+    const focusCell = useCallback((nextRow: number, nextCol: number) => {
+      const r = Math.max(0, Math.min(8, nextRow));
+      const c = Math.max(0, Math.min(8, nextCol));
+      const nextIdx = toIndex(r, c);
+      const el = document.querySelector<HTMLElement>(`[data-cell="${nextIdx}"]`);
+      el?.focus();
+    }, []);
+
+    const handleKeyDown = useCallback(
+      (e: KeyboardEvent<HTMLElement>) => {
+        switch (e.key) {
+          case "ArrowUp":
+            e.preventDefault();
+            focusCell(rowIndex - 1, colIndex);
+            return;
+          case "ArrowDown":
+            e.preventDefault();
+            focusCell(rowIndex + 1, colIndex);
+            return;
+          case "ArrowLeft":
+            e.preventDefault();
+            focusCell(rowIndex, colIndex - 1);
+            return;
+          case "ArrowRight":
+            e.preventDefault();
+            focusCell(rowIndex, colIndex + 1);
+            return;
+          default:
+            return;
+        }
+      },
+      [rowIndex, colIndex, focusCell]
+    );
 
     const handlePaste = useCallback(
       (e: ClipboardEvent<HTMLInputElement>) => {
@@ -92,7 +136,11 @@ const SudokuCell = memo(
         <div
           className={cn(baseStyles, stateStyles)}
           onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
           role="button"
+          data-cell={idx}
+          aria-invalid={conflict || undefined}
           aria-label={`Cell ${rowIndex + 1}, ${colIndex + 1}, value ${value}`}
         >
           {value !== 0 ? value : ""}
@@ -109,9 +157,12 @@ const SudokuCell = memo(
         onChange={handleChange}
         onClick={handleClick}
         onPaste={handlePaste}
+        onKeyDown={handleKeyDown}
         className={cn(baseStyles, stateStyles, "caret-transparent")}
         maxLength={1}
         autoComplete="off"
+        data-cell={idx}
+        aria-invalid={conflict || undefined}
         aria-label={`Editable cell ${rowIndex + 1}, ${colIndex + 1}`}
       />
     );

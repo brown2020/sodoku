@@ -16,6 +16,11 @@ import {
 
 interface GameStore extends GameState, GameActions {
   conflictTimeoutId: ReturnType<typeof setTimeout> | null;
+  _applyMove: (args: {
+    nextPuzzle: Uint8Array;
+    nextHistory?: GameState["history"];
+    nextMoveCount?: number;
+  }) => void;
 }
 
 const getInitialState = (): GameState & {
@@ -24,7 +29,8 @@ const getInitialState = (): GameState & {
   puzzle: new Uint8Array(81),
   initialPuzzle: new Uint8Array(81),
   solution: new Uint8Array(81),
-  conflicts: new Uint8Array(81),
+  ruleConflicts: new Uint8Array(81),
+  checkHighlights: new Uint8Array(81),
   history: [],
   difficulty: "medium",
   status: {
@@ -43,6 +49,31 @@ const getInitialState = (): GameState & {
 
 export const useGameStore = create<GameStore>((set, get) => ({
   ...getInitialState(),
+
+  /**
+   * Internal helper to keep puzzle/history/conflicts/stats consistent.
+   * - Recomputes live rule conflicts
+   * - Clears "check" highlights (to avoid stale incorrect markers after edits)
+   */
+  _applyMove: (
+    args: {
+      nextPuzzle: Uint8Array;
+      nextHistory?: GameState["history"];
+      nextMoveCount?: number;
+    }
+  ) => {
+    const { stats } = get();
+    set({
+      puzzle: args.nextPuzzle,
+      history: args.nextHistory ?? get().history,
+      ruleConflicts: computeConflicts(args.nextPuzzle),
+      checkHighlights: new Uint8Array(81),
+      stats: {
+        ...stats,
+        moveCount: args.nextMoveCount ?? stats.moveCount,
+      },
+    });
+  },
 
   clearConflictTimeout: () => {
     const { conflictTimeoutId } = get();
@@ -74,7 +105,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       puzzle: puzzleFlat,
       initialPuzzle: puzzleFlat.slice(),
       solution: solutionFlat,
-      conflicts: new Uint8Array(81),
+      ruleConflicts: computeConflicts(puzzleFlat),
+      checkHighlights: new Uint8Array(81),
       history: [],
       status: {
         isComplete: false,
@@ -106,16 +138,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Update history with delta (only position + previous value)
     const newHistory = [...history, { position: { row, col }, previousValue }];
 
-    const newConflicts = computeConflicts(nextPuzzle);
-
-    set({
-      puzzle: nextPuzzle,
-      conflicts: newConflicts,
-      history: newHistory,
-      stats: {
-        ...stats,
-        moveCount: stats.moveCount + 1,
-      },
+    get()._applyMove({
+      nextPuzzle,
+      nextHistory: newHistory,
+      nextMoveCount: stats.moveCount + 1,
     });
   },
 
@@ -138,20 +164,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
           isComplete: true,
           hasWon: !status.isSolved,
         },
-        conflicts: new Uint8Array(81),
+        checkHighlights: new Uint8Array(81),
       });
     } else {
       const incorrect = computeIncorrectCells(puzzle, solution);
       // Store timeout ID so we can clear it if needed
       const timeoutId = setTimeout(() => {
         set({
-          conflicts: new Uint8Array(81),
+          checkHighlights: new Uint8Array(81),
           conflictTimeoutId: null,
         });
       }, 2000);
 
       set({
-        conflicts: incorrect,
+        checkHighlights: incorrect,
         conflictTimeoutId: timeoutId,
       });
     }
@@ -169,16 +195,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const nextPuzzle = puzzle.slice();
     nextPuzzle[idx] = lastMove.previousValue;
 
-    const conflicts = computeConflicts(nextPuzzle);
-
-    set({
-      puzzle: nextPuzzle,
-      history: newHistory,
-      conflicts,
-      stats: {
-        ...stats,
-        moveCount: Math.max(0, stats.moveCount - 1),
-      },
+    get()._applyMove({
+      nextPuzzle,
+      nextHistory: newHistory,
+      nextMoveCount: Math.max(0, stats.moveCount - 1),
     });
   },
 
@@ -198,16 +218,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       nextPuzzle[idx] = solution[idx] ?? 0;
       const { row, col } = fromIndex(idx);
       const newHistory = [...history, { position: { row, col }, previousValue }];
-      const conflicts = computeConflicts(nextPuzzle);
-
-      set({
-        puzzle: nextPuzzle,
-        history: newHistory,
-        conflicts,
-        stats: {
-          ...stats,
-          moveCount: stats.moveCount + 1,
-        },
+      get()._applyMove({
+        nextPuzzle,
+        nextHistory: newHistory,
+        nextMoveCount: stats.moveCount + 1,
       });
     }
   },
@@ -220,7 +234,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     set({
       puzzle: solution.slice(),
-      conflicts: new Uint8Array(81),
+      ruleConflicts: new Uint8Array(81),
+      checkHighlights: new Uint8Array(81),
       status: {
         isComplete: true,
         isSolved: true,

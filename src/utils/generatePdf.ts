@@ -1,8 +1,12 @@
-import jsPDF from "jspdf";
-
-// Function to generate PDF
-export const generatePdf = (puzzle: number[][]): void => {
-  const doc = new jsPDF();
+// Function to generate PDF (lazy-load jsPDF to keep initial bundle small)
+export const generatePdf = async (puzzle: number[][]): Promise<void> => {
+  const mod = await import("jspdf");
+  const JsPdfCtor =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ((mod as any).jsPDF as new () => any) ??
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ((mod as any).default as new () => any);
+  const doc = new JsPdfCtor();
 
   // Add title to the PDF
   doc.setFontSize(16);

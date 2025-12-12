@@ -69,9 +69,9 @@ const ControlPanel = memo(() => {
   const checkCompletion = useGameStore((state) => state.checkCompletion);
 
   // Get puzzle at click time to avoid unnecessary re-renders
-  const handleDownload = useCallback(() => {
+  const handleDownload = useCallback(async () => {
     const puzzle = useGameStore.getState().puzzle;
-    generatePdf(flatToGrid(puzzle));
+    await generatePdf(flatToGrid(puzzle));
   }, []);
 
   // Memoize handlers and disabled states

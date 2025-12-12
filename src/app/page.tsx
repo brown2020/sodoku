@@ -1,5 +1,5 @@
-import SudokuMainLoader from "@/components/SudokuMainLoader";
+import SudokuMain from "@/components/SudokuMain";
 
 export default function HomePage() {
-  return <SudokuMainLoader />;
+  return <SudokuMain />;
 }

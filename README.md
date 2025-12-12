@@ -22,6 +22,8 @@ A modern, performant Sudoku game built with Next.js 16, React 19, TypeScript, an
 - **Three Difficulty Levels** - Easy (51 clues), Medium (41 clues), Hard (31 clues)
 - **Real-time Conflict Detection** - Instantly highlights invalid placements
 - **Number Highlighting** - Click any number to highlight all matching cells
+- **Pencil Marks (Notes)** - Toggle Notes mode to add candidate numbers to empty cells
+- **Auto-check (Optional)** - Highlight incorrect entries as you play
 
 ### Game Controls
 
@@ -31,6 +33,7 @@ A modern, performant Sudoku game built with Next.js 16, React 19, TypeScript, an
 - **Solve** - Auto-complete the puzzle (marks as assisted)
 - **Check** - Validate solution and highlight incorrect cells
 - **PDF Export** - Download puzzle for offline play
+- **Number Pad** - Tap 1-9 and Erase for mobile-friendly play
 
 ### User Experience
 
@@ -113,6 +116,7 @@ sodoku/
 │   │
 │   ├── components/
 │   │   ├── ControlPanel.tsx   # Game control buttons
+│   │   ├── NumberPad.tsx      # On-screen 1-9 keypad + erase
 │   │   ├── SudokuCell.tsx     # Individual cell (input/display)
 │   │   ├── SudokuGrid.tsx     # 9x9 grid with 3x3 boxes
 │   │   └── SudokuMain.tsx     # Main game container & sub-components
@@ -152,13 +156,18 @@ interface GameState {
   puzzle: Uint8Array; // Flat 81-length current puzzle (row-major)
   initialPuzzle: Uint8Array; // Flat original puzzle (immutable cells)
   solution: Uint8Array; // Flat solution
+  notes: Uint16Array; // Flat pencil marks bitmask per cell
   ruleConflicts: Uint8Array; // Live duplicate conflicts
   checkHighlights: Uint8Array; // Incorrect-cell highlights after "Check"
+  incorrectHighlights: Uint8Array; // Incorrect-cell highlights when auto-check is enabled
   history: Move[]; // Undo history (delta-based)
   difficulty: Difficulty; // easy | medium | hard
   status: GameStatus; // isComplete, isSolved, hasWon
   stats: GameStats; // moveCount, timeElapsed, startTime
   selectedNumber: number | null; // For number highlighting
+  selectedCellIdx: number | null; // For peer highlighting / keypad input
+  isNotesMode: boolean;
+  isAutoCheckEnabled: boolean;
 }
 ```
 

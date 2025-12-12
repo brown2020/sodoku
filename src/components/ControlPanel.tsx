@@ -9,10 +9,13 @@ import {
   CheckCircle,
   PlayCircle,
   Download,
+  Pencil,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import { generatePdf } from "@/utils/generatePdf";
 import { computeIsFilled, flatToGrid } from "@/utils/gameEngine";
+import NumberPad from "./NumberPad";
 
 interface ButtonConfig {
   label: string;
@@ -55,10 +58,13 @@ const BUTTON_CONFIG: ButtonConfig[] = [
 ];
 
 const ControlPanel = memo(() => {
-  const { isComplete, isPuzzleFilled } = useGameStore(
+  const { isComplete, isPuzzleFilled, isNotesMode, isAutoCheckEnabled } =
+    useGameStore(
     useShallow((state) => ({
       isComplete: state.status.isComplete,
       isPuzzleFilled: computeIsFilled(state.puzzle),
+      isNotesMode: state.isNotesMode,
+      isAutoCheckEnabled: state.isAutoCheckEnabled,
     }))
   );
 
@@ -67,6 +73,8 @@ const ControlPanel = memo(() => {
   const provideHint = useGameStore((state) => state.provideHint);
   const solveGame = useGameStore((state) => state.solveGame);
   const checkCompletion = useGameStore((state) => state.checkCompletion);
+  const toggleNotesMode = useGameStore((state) => state.toggleNotesMode);
+  const toggleAutoCheck = useGameStore((state) => state.toggleAutoCheck);
 
   // Get puzzle at click time to avoid unnecessary re-renders
   const handleDownload = useCallback(async () => {
@@ -101,25 +109,65 @@ const ControlPanel = memo(() => {
   );
 
   return (
-    <div className="flex flex-wrap justify-center gap-3 mb-6 w-full max-w-3xl mx-auto px-4">
-      {buttons.map((btn) => (
+    <div className="w-full max-w-3xl mx-auto">
+      <div className="flex flex-wrap justify-center gap-3 mb-4 px-4">
+        {buttons.map((btn) => (
+          <button
+            key={btn.label}
+            onClick={btn.onClick}
+            disabled={btn.disabled}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white shadow-sm transition-all active:scale-95",
+              "focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-slate-400",
+              btn.color,
+              btn.disabled &&
+                "opacity-50 cursor-not-allowed hover:bg-gray-400 bg-gray-400"
+            )}
+            aria-label={btn.label}
+          >
+            <btn.icon size={18} />
+            <span className="hidden sm:inline">{btn.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-3 mb-4 px-4">
         <button
-          key={btn.label}
-          onClick={btn.onClick}
-          disabled={btn.disabled}
+          type="button"
+          onClick={toggleNotesMode}
           className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white shadow-sm transition-all active:scale-95",
+            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm transition-all active:scale-95",
             "focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-slate-400",
-            btn.color,
-            btn.disabled &&
-              "opacity-50 cursor-not-allowed hover:bg-gray-400 bg-gray-400"
+            isNotesMode
+              ? "bg-slate-900 text-white"
+              : "bg-white text-slate-800 border border-slate-200"
           )}
-          aria-label={btn.label}
+          aria-pressed={isNotesMode}
         >
-          <btn.icon size={18} />
-          <span className="hidden sm:inline">{btn.label}</span>
+          <Pencil size={18} />
+          <span className="hidden sm:inline">Notes</span>
         </button>
-      ))}
+
+        <button
+          type="button"
+          onClick={toggleAutoCheck}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm transition-all active:scale-95",
+            "focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-slate-400",
+            isAutoCheckEnabled
+              ? "bg-slate-900 text-white"
+              : "bg-white text-slate-800 border border-slate-200"
+          )}
+          aria-pressed={isAutoCheckEnabled}
+        >
+          <ShieldCheck size={18} />
+          <span className="hidden sm:inline">Auto-check</span>
+        </button>
+      </div>
+
+      <div className="mb-6">
+        <NumberPad />
+      </div>
     </div>
   );
 });

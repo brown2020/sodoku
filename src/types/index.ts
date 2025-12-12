@@ -15,6 +15,7 @@ export type CellPosition = {
 export type Move = {
   position: CellPosition;
   previousValue: number;
+  previousNotes: number;
 };
 
 export interface GameStatus {
@@ -36,21 +37,35 @@ export interface GameState {
   initialPuzzle: Uint8Array;
   /** Flat 81-length solution (row-major). Values are 1..9. */
   solution: Uint8Array;
+  /** Flat 81-length pencil marks bitmask (bits 1..9 used). */
+  notes: Uint16Array;
   /** Live Sudoku rule conflicts (duplicates in row/col/box). */
   ruleConflicts: Uint8Array;
   /** "Check" button highlights (incorrect filled cells); cleared after a timeout or next edit. */
   checkHighlights: Uint8Array;
+  /** Auto-check highlights (incorrect filled cells while enabled). */
+  incorrectHighlights: Uint8Array;
   history: Move[];
   difficulty: Difficulty;
   status: GameStatus;
   stats: GameStats;
   selectedNumber: number | null;
+  selectedCellIdx: number | null;
+  isNotesMode: boolean;
+  isAutoCheckEnabled: boolean;
 }
 
 export interface GameActions {
   setDifficulty: (difficulty: Difficulty) => void;
   generateNewGame: () => void;
   setCellValue: (row: number, col: number, value: number) => void;
+  eraseCell: (row: number, col: number) => void;
+  toggleNote: (row: number, col: number, value: number) => void;
+  toggleNotesMode: () => void;
+  setSelectedCellIdx: (cellIdx: number | null) => void;
+  inputNumber: (value: number) => void;
+  eraseSelectedCell: () => void;
+  toggleAutoCheck: () => void;
   selectNumber: (number: number | null) => void;
   checkCompletion: () => void;
   undoMove: () => void;

@@ -20,27 +20,46 @@ const SudokuCell = memo(
     const idx = toIndex(rowIndex, colIndex);
     const {
       value,
+      notesMask,
       conflict,
       isOriginal,
       isComplete,
       isSolved,
+      isNotesMode,
       selectedNumber,
+      selectedCellIdx,
       setCellValue,
       selectNumber,
+      setSelectedCellIdx,
+      toggleNote,
     } = useGameStore(
       useShallow((state) => ({
         value: state.puzzle[idx] ?? 0,
+        notesMask: state.notes[idx] ?? 0,
         conflict:
           (state.ruleConflicts[idx] ?? 0) === 1 ||
-          (state.checkHighlights[idx] ?? 0) === 1,
+          (state.checkHighlights[idx] ?? 0) === 1 ||
+          (state.incorrectHighlights[idx] ?? 0) === 1,
         isOriginal: (state.initialPuzzle[idx] ?? 0) !== 0,
         isComplete: state.status.isComplete,
         isSolved: state.status.isSolved,
+        isNotesMode: state.isNotesMode,
         selectedNumber: state.selectedNumber,
+        selectedCellIdx: state.selectedCellIdx,
         setCellValue: state.setCellValue,
         selectNumber: state.selectNumber,
+        setSelectedCellIdx: state.setSelectedCellIdx,
+        toggleNote: state.toggleNote,
       }))
     );
+
+    const isSelectedCell = selectedCellIdx === idx;
+    const isPeerHighlighted =
+      selectedCellIdx != null &&
+      (Math.floor(selectedCellIdx / 9) === rowIndex ||
+        selectedCellIdx % 9 === colIndex ||
+        (Math.floor(selectedCellIdx / 27) === Math.floor(rowIndex / 3) &&
+          Math.floor((selectedCellIdx % 9) / 3) === Math.floor(colIndex / 3)));
 
     const handleChange = useCallback(
       (e: ChangeEvent<HTMLInputElement>) => {
@@ -49,19 +68,29 @@ const SudokuCell = memo(
         if (inputValue === "") {
           setCellValue(rowIndex, colIndex, 0);
         } else if (/^[1-9]$/.test(inputValue)) {
-          setCellValue(rowIndex, colIndex, parseInt(inputValue, 10));
+          const n = parseInt(inputValue, 10);
+          if (isNotesMode) {
+            toggleNote(rowIndex, colIndex, n);
+          } else {
+            setCellValue(rowIndex, colIndex, n);
+          }
         }
       },
-      [setCellValue, rowIndex, colIndex]
+      [setCellValue, toggleNote, isNotesMode, rowIndex, colIndex]
     );
 
     const handleClick = useCallback(() => {
+      setSelectedCellIdx(idx);
       if (value === 0) {
         selectNumber(null);
         return;
       }
       selectNumber(value === selectedNumber ? null : value);
-    }, [value, selectedNumber, selectNumber]);
+    }, [idx, setSelectedCellIdx, value, selectedNumber, selectNumber]);
+
+    const handleFocus = useCallback(() => {
+      setSelectedCellIdx(idx);
+    }, [idx, setSelectedCellIdx]);
 
     const focusCell = useCallback((nextRow: number, nextCol: number) => {
       const r = Math.max(0, Math.min(8, nextRow));
@@ -118,6 +147,8 @@ const SudokuCell = memo(
 
     const stateStyles = cn(
       conflict && "bg-red-100 text-red-600",
+      !conflict && isSelectedCell && "bg-slate-200",
+      !conflict && !isSelectedCell && isPeerHighlighted && "bg-slate-50",
       !conflict && isHighlighted && "bg-blue-500 text-white",
       !conflict && !isHighlighted && isSolved && "text-blue-600 bg-blue-50",
       !conflict &&
@@ -136,6 +167,7 @@ const SudokuCell = memo(
         <div
           className={cn(baseStyles, stateStyles)}
           onClick={handleClick}
+          onFocus={handleFocus}
           onKeyDown={handleKeyDown}
           tabIndex={0}
           role="button"
@@ -148,23 +180,45 @@ const SudokuCell = memo(
       );
     }
 
+    const showNotes = value === 0 && notesMask !== 0;
+
     return (
-      <input
-        type="tel"
-        inputMode="numeric"
-        pattern="[1-9]*"
-        value={value !== 0 ? value : ""}
-        onChange={handleChange}
-        onClick={handleClick}
-        onPaste={handlePaste}
-        onKeyDown={handleKeyDown}
-        className={cn(baseStyles, stateStyles, "caret-transparent")}
-        maxLength={1}
-        autoComplete="off"
-        data-cell={idx}
-        aria-invalid={conflict || undefined}
-        aria-label={`Editable cell ${rowIndex + 1}, ${colIndex + 1}`}
-      />
+      <div className={cn(baseStyles, stateStyles, "relative")}>
+        {showNotes ? (
+          <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 p-1 text-[10px] leading-none text-slate-500">
+            {Array.from({ length: 9 }, (_, i) => {
+              const n = i + 1;
+              const bit = 1 << n;
+              return (
+                <div key={n} className="flex items-center justify-center">
+                  {notesMask & bit ? n : ""}
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+
+        <input
+          type="tel"
+          inputMode="numeric"
+          pattern="[1-9]*"
+          value={value !== 0 ? value : ""}
+          onChange={handleChange}
+          onClick={handleClick}
+          onFocus={handleFocus}
+          onPaste={handlePaste}
+          onKeyDown={handleKeyDown}
+          className={cn(
+            "absolute inset-0 w-full h-full bg-transparent text-inherit text-center",
+            "caret-transparent"
+          )}
+          maxLength={1}
+          autoComplete="off"
+          data-cell={idx}
+          aria-invalid={conflict || undefined}
+          aria-label={`Editable cell ${rowIndex + 1}, ${colIndex + 1}`}
+        />
+      </div>
     );
   }
 );

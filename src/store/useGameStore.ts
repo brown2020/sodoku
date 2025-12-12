@@ -10,6 +10,8 @@ import {
   computeConflicts,
   computeIncorrectCells,
   fromIndex,
+  isSolved,
+  computeIsFilled,
   gridToFlat,
   toIndex,
 } from "@/utils/gameEngine";
@@ -18,6 +20,7 @@ interface GameStore extends GameState, GameActions {
   conflictTimeoutId: ReturnType<typeof setTimeout> | null;
   _applyMove: (args: {
     nextPuzzle: Uint8Array;
+    nextNotes?: Uint16Array;
     nextHistory?: GameState["history"];
     nextMoveCount?: number;
   }) => void;
@@ -29,8 +32,10 @@ const getInitialState = (): GameState & {
   puzzle: new Uint8Array(81),
   initialPuzzle: new Uint8Array(81),
   solution: new Uint8Array(81),
+  notes: new Uint16Array(81),
   ruleConflicts: new Uint8Array(81),
   checkHighlights: new Uint8Array(81),
+  incorrectHighlights: new Uint8Array(81),
   history: [],
   difficulty: "medium",
   status: {
@@ -44,6 +49,9 @@ const getInitialState = (): GameState & {
     startTime: 0,
   },
   selectedNumber: null,
+  selectedCellIdx: null,
+  isNotesMode: false,
+  isAutoCheckEnabled: false,
   conflictTimeoutId: null,
 });
 
@@ -58,20 +66,37 @@ export const useGameStore = create<GameStore>((set, get) => ({
   _applyMove: (
     args: {
       nextPuzzle: Uint8Array;
+      nextNotes?: Uint16Array;
       nextHistory?: GameState["history"];
       nextMoveCount?: number;
     }
   ) => {
-    const { stats } = get();
+    const { stats, solution, status, isAutoCheckEnabled } = get();
+    const nextNotes = args.nextNotes ?? get().notes;
+
+    const nextIncorrectHighlights = isAutoCheckEnabled
+      ? computeIncorrectCells(args.nextPuzzle, solution)
+      : new Uint8Array(81);
+
+    const hasWonNow =
+      !status.isSolved &&
+      computeIsFilled(args.nextPuzzle) &&
+      isSolved(args.nextPuzzle, solution);
+
     set({
       puzzle: args.nextPuzzle,
+      notes: nextNotes,
       history: args.nextHistory ?? get().history,
       ruleConflicts: computeConflicts(args.nextPuzzle),
       checkHighlights: new Uint8Array(81),
+      incorrectHighlights: nextIncorrectHighlights,
       stats: {
         ...stats,
         moveCount: args.nextMoveCount ?? stats.moveCount,
       },
+      status: hasWonNow
+        ? { ...status, isComplete: true, hasWon: true }
+        : status,
     });
   },
 
@@ -105,8 +130,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       puzzle: puzzleFlat,
       initialPuzzle: puzzleFlat.slice(),
       solution: solutionFlat,
+      notes: new Uint16Array(81),
       ruleConflicts: computeConflicts(puzzleFlat),
       checkHighlights: new Uint8Array(81),
+      incorrectHighlights: new Uint8Array(81),
       history: [],
       status: {
         isComplete: false,
@@ -119,11 +146,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
         startTime: Date.now(),
       },
       selectedNumber: null,
+      selectedCellIdx: null,
+      isNotesMode: false,
     });
   },
 
   setCellValue: (row: number, col: number, value: number) => {
-    const { puzzle, initialPuzzle, status, history, stats } = get();
+    const { puzzle, initialPuzzle, status, history, stats, notes } = get();
     const idx = toIndex(row, col);
 
     // Prevent editing initial cells or if game is complete
@@ -131,17 +160,93 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // Store the previous value for delta-based history
     const previousValue = puzzle[idx] ?? 0;
+    const previousNotes = notes[idx] ?? 0;
 
     const nextPuzzle = puzzle.slice();
     nextPuzzle[idx] = value;
+    const nextNotes = notes.slice();
+    nextNotes[idx] = 0;
 
     // Update history with delta (only position + previous value)
-    const newHistory = [...history, { position: { row, col }, previousValue }];
+    const newHistory = [
+      ...history,
+      { position: { row, col }, previousValue, previousNotes },
+    ];
 
     get()._applyMove({
       nextPuzzle,
+      nextNotes,
       nextHistory: newHistory,
       nextMoveCount: stats.moveCount + 1,
+    });
+  },
+
+  eraseCell: (row: number, col: number) => {
+    get().setCellValue(row, col, 0);
+  },
+
+  toggleNote: (row: number, col: number, value: number) => {
+    const { puzzle, initialPuzzle, status, history, stats, notes } = get();
+    const idx = toIndex(row, col);
+    if (value < 1 || value > 9) return;
+    if ((initialPuzzle[idx] ?? 0) !== 0 || status.isComplete) return;
+    if ((puzzle[idx] ?? 0) !== 0) return; // notes only on empty cells
+
+    const previousValue = 0;
+    const previousNotes = notes[idx] ?? 0;
+
+    const bit = 1 << value;
+    const nextNotes = notes.slice();
+    nextNotes[idx] = previousNotes ^ bit;
+
+    const newHistory = [
+      ...history,
+      { position: { row, col }, previousValue, previousNotes },
+    ];
+
+    get()._applyMove({
+      nextPuzzle: puzzle,
+      nextNotes,
+      nextHistory: newHistory,
+      nextMoveCount: stats.moveCount + 1,
+    });
+  },
+
+  toggleNotesMode: () => {
+    set((s) => ({ isNotesMode: !s.isNotesMode }));
+  },
+
+  setSelectedCellIdx: (cellIdx: number | null) => {
+    set({ selectedCellIdx: cellIdx });
+  },
+
+  inputNumber: (value: number) => {
+    const { selectedCellIdx, isNotesMode } = get();
+    if (selectedCellIdx == null) return;
+    if (value < 1 || value > 9) return;
+    const row = Math.floor(selectedCellIdx / 9);
+    const col = selectedCellIdx % 9;
+    if (isNotesMode) get().toggleNote(row, col, value);
+    else get().setCellValue(row, col, value);
+  },
+
+  eraseSelectedCell: () => {
+    const { selectedCellIdx } = get();
+    if (selectedCellIdx == null) return;
+    const row = Math.floor(selectedCellIdx / 9);
+    const col = selectedCellIdx % 9;
+    get().eraseCell(row, col);
+  },
+
+  toggleAutoCheck: () => {
+    set((s) => {
+      const isAutoCheckEnabled = !s.isAutoCheckEnabled;
+      return {
+        isAutoCheckEnabled,
+        incorrectHighlights: isAutoCheckEnabled
+          ? computeIncorrectCells(s.puzzle, s.solution)
+          : new Uint8Array(81),
+      };
     });
   },
 
@@ -184,7 +289,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   undoMove: () => {
-    const { history, puzzle, stats, status } = get();
+    const { history, puzzle, notes, stats, status } = get();
     if (history.length === 0) return;
     if (status.isComplete) return;
 
@@ -194,16 +299,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const idx = toIndex(lastMove.position.row, lastMove.position.col);
     const nextPuzzle = puzzle.slice();
     nextPuzzle[idx] = lastMove.previousValue;
+    const nextNotes = notes.slice();
+    nextNotes[idx] = lastMove.previousNotes;
 
     get()._applyMove({
       nextPuzzle,
+      nextNotes,
       nextHistory: newHistory,
       nextMoveCount: Math.max(0, stats.moveCount - 1),
     });
   },
 
   provideHint: () => {
-    const { puzzle, solution, status, stats, history } = get();
+    const { puzzle, solution, status, stats, history, notes } = get();
     if (status.isComplete) return;
 
     const emptyIndexes: number[] = [];
@@ -214,12 +322,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (emptyIndexes.length > 0) {
       const idx = emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
       const previousValue = puzzle[idx] ?? 0;
+      const previousNotes = notes[idx] ?? 0;
       const nextPuzzle = puzzle.slice();
       nextPuzzle[idx] = solution[idx] ?? 0;
+      const nextNotes = notes.slice();
+      nextNotes[idx] = 0;
       const { row, col } = fromIndex(idx);
-      const newHistory = [...history, { position: { row, col }, previousValue }];
+      const newHistory = [
+        ...history,
+        { position: { row, col }, previousValue, previousNotes },
+      ];
       get()._applyMove({
         nextPuzzle,
+        nextNotes,
         nextHistory: newHistory,
         nextMoveCount: stats.moveCount + 1,
       });
@@ -234,8 +349,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     set({
       puzzle: solution.slice(),
+      notes: new Uint16Array(81),
       ruleConflicts: new Uint8Array(81),
       checkHighlights: new Uint8Array(81),
+      incorrectHighlights: new Uint8Array(81),
       status: {
         isComplete: true,
         isSolved: true,

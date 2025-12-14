@@ -39,6 +39,11 @@ export interface GameState {
   solution: Uint8Array;
   /** Flat 81-length pencil marks bitmask (bits 1..9 used). */
   notes: Uint16Array;
+  /**
+   * When enabled, notes are treated as auto-generated candidates and will be
+   * recomputed whenever the puzzle changes.
+   */
+  areNotesAuto: boolean;
   /** Live Sudoku rule conflicts (duplicates in row/col/box). */
   ruleConflicts: Uint8Array;
   /** "Check" button highlights (incorrect filled cells); cleared after a timeout or next edit. */
@@ -61,6 +66,8 @@ export interface GameActions {
   setCellValue: (row: number, col: number, value: number) => void;
   eraseCell: (row: number, col: number) => void;
   toggleNote: (row: number, col: number, value: number) => void;
+  /** Auto-fills candidate notes for all empty cells based on current grid state. */
+  autoFillNotes: () => void;
   toggleNotesMode: () => void;
   setSelectedCellIdx: (cellIdx: number | null) => void;
   inputNumber: (value: number) => void;

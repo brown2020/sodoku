@@ -8,6 +8,7 @@ import {
 } from "@/types";
 import {
   computeConflicts,
+  computeCandidateNotes,
   computeIncorrectCells,
   fromIndex,
   isSolved,
@@ -33,6 +34,7 @@ const getInitialState = (): GameState & {
   initialPuzzle: new Uint8Array(81),
   solution: new Uint8Array(81),
   notes: new Uint16Array(81),
+  areNotesAuto: false,
   ruleConflicts: new Uint8Array(81),
   checkHighlights: new Uint8Array(81),
   incorrectHighlights: new Uint8Array(81),
@@ -63,16 +65,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
    * - Recomputes live rule conflicts
    * - Clears "check" highlights (to avoid stale incorrect markers after edits)
    */
-  _applyMove: (
-    args: {
-      nextPuzzle: Uint8Array;
-      nextNotes?: Uint16Array;
-      nextHistory?: GameState["history"];
-      nextMoveCount?: number;
-    }
-  ) => {
-    const { stats, solution, status, isAutoCheckEnabled } = get();
-    const nextNotes = args.nextNotes ?? get().notes;
+  _applyMove: (args: {
+    nextPuzzle: Uint8Array;
+    nextNotes?: Uint16Array;
+    nextHistory?: GameState["history"];
+    nextMoveCount?: number;
+  }) => {
+    const { stats, solution, status, isAutoCheckEnabled, areNotesAuto } = get();
+    const didPuzzleChange = args.nextPuzzle !== get().puzzle;
+    const nextNotes =
+      areNotesAuto && didPuzzleChange
+        ? computeCandidateNotes(args.nextPuzzle)
+        : args.nextNotes ?? get().notes;
 
     const nextIncorrectHighlights = isAutoCheckEnabled
       ? computeIncorrectCells(args.nextPuzzle, solution)
@@ -131,6 +135,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       initialPuzzle: puzzleFlat.slice(),
       solution: solutionFlat,
       notes: new Uint16Array(81),
+      areNotesAuto: false,
       ruleConflicts: computeConflicts(puzzleFlat),
       checkHighlights: new Uint8Array(81),
       incorrectHighlights: new Uint8Array(81),
@@ -210,6 +215,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       nextHistory: newHistory,
       nextMoveCount: stats.moveCount + 1,
     });
+  },
+
+  autoFillNotes: () => {
+    const { puzzle, status } = get();
+    if (status.isComplete) return;
+    set({ notes: computeCandidateNotes(puzzle), areNotesAuto: true });
   },
 
   toggleNotesMode: () => {

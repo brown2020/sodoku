@@ -11,6 +11,7 @@ import {
   Download,
   Pencil,
   ShieldCheck,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import { generatePdf } from "@/utils/generatePdf";
@@ -60,13 +61,13 @@ const BUTTON_CONFIG: ButtonConfig[] = [
 const ControlPanel = memo(() => {
   const { isComplete, isPuzzleFilled, isNotesMode, isAutoCheckEnabled } =
     useGameStore(
-    useShallow((state) => ({
-      isComplete: state.status.isComplete,
-      isPuzzleFilled: computeIsFilled(state.puzzle),
-      isNotesMode: state.isNotesMode,
-      isAutoCheckEnabled: state.isAutoCheckEnabled,
-    }))
-  );
+      useShallow((state) => ({
+        isComplete: state.status.isComplete,
+        isPuzzleFilled: computeIsFilled(state.puzzle),
+        isNotesMode: state.isNotesMode,
+        isAutoCheckEnabled: state.isAutoCheckEnabled,
+      }))
+    );
 
   const generateNewGame = useGameStore((state) => state.generateNewGame);
   const undoMove = useGameStore((state) => state.undoMove);
@@ -75,6 +76,7 @@ const ControlPanel = memo(() => {
   const checkCompletion = useGameStore((state) => state.checkCompletion);
   const toggleNotesMode = useGameStore((state) => state.toggleNotesMode);
   const toggleAutoCheck = useGameStore((state) => state.toggleAutoCheck);
+  const autoFillNotes = useGameStore((state) => state.autoFillNotes);
 
   // Get puzzle at click time to avoid unnecessary re-renders
   const handleDownload = useCallback(async () => {
@@ -146,6 +148,23 @@ const ControlPanel = memo(() => {
         >
           <Pencil size={18} />
           <span className="hidden sm:inline">Notes</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={autoFillNotes}
+          disabled={isComplete || isPuzzleFilled}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm transition-all active:scale-95",
+            "focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-slate-400",
+            "bg-white text-slate-800 border border-slate-200",
+            (isComplete || isPuzzleFilled) &&
+              "opacity-50 cursor-not-allowed hover:bg-white"
+          )}
+          aria-label="Auto-fill notes"
+        >
+          <Sparkles size={18} />
+          <span className="hidden sm:inline">Auto notes</span>
         </button>
 
         <button

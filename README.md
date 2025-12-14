@@ -23,6 +23,7 @@ A modern, performant Sudoku game built with Next.js 16, React 19, TypeScript, an
 - **Real-time Conflict Detection** - Instantly highlights invalid placements
 - **Number Highlighting** - Click any number to highlight all matching cells
 - **Pencil Marks (Notes)** - Toggle Notes mode to add candidate numbers to empty cells
+- **Auto Notes** - One-click candidate fill that can stay in sync as you play
 - **Auto-check (Optional)** - Highlight incorrect entries as you play
 
 ### Game Controls
@@ -33,6 +34,7 @@ A modern, performant Sudoku game built with Next.js 16, React 19, TypeScript, an
 - **Solve** - Auto-complete the puzzle (marks as assisted)
 - **Check** - Validate solution and highlight incorrect cells
 - **PDF Export** - Download puzzle for offline play
+- **Auto Notes** - Auto-fill candidate notes for all empty cells
 - **Number Pad** - Tap 1-9 and Erase for mobile-friendly play
 
 ### User Experience
@@ -132,6 +134,7 @@ sodoku/
 │   │
 │   └── utils/
 │       ├── generatePdf.ts     # PDF export functionality
+│       ├── gameEngine.ts      # Fast grid helpers (conflicts, candidates, etc.)
 │       └── sudokuUtils.ts     # Puzzle generation & validation
 │
 ├── public/
@@ -157,6 +160,7 @@ interface GameState {
   initialPuzzle: Uint8Array; // Flat original puzzle (immutable cells)
   solution: Uint8Array; // Flat solution
   notes: Uint16Array; // Flat pencil marks bitmask per cell
+  areNotesAuto: boolean; // Auto-notes enabled (recompute notes when puzzle changes)
   ruleConflicts: Uint8Array; // Live duplicate conflicts
   checkHighlights: Uint8Array; // Incorrect-cell highlights after "Check"
   incorrectHighlights: Uint8Array; // Incorrect-cell highlights when auto-check is enabled
@@ -212,6 +216,7 @@ Real-time validation checks:
 
 - Use the **number highlighting** to spot where a number can go
 - The **Check** button only works when all cells are filled
+- Use **Auto notes** to quickly populate candidate notes (and keep them updated as you enter numbers)
 - **Hints** count as moves but don't disqualify a win
 - Using **Solve** marks the game as assisted (no win modal)
 
@@ -235,7 +240,8 @@ Contributions are welcome! Please follow these steps:
 
 ## Roadmap
 
-- [ ] Pencil marks (candidate numbers)
+- [x] Pencil marks (candidate numbers)
+- [x] Auto notes (auto-fill + keep candidates updated)
 - [x] Keyboard arrow navigation
 - [ ] Local storage persistence
 - [ ] Dark mode support

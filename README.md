@@ -50,35 +50,41 @@ A modern, performant Sudoku game built with Next.js 16, React 19, TypeScript, an
 
 ### Core
 
-| Package                                       | Version | Purpose                         |
-| --------------------------------------------- | ------- | ------------------------------- |
-| [Next.js](https://nextjs.org/)                | 16.x    | React framework with App Router |
-| [React](https://react.dev/)                   | 19.x    | UI library                      |
-| [TypeScript](https://www.typescriptlang.org/) | 5.x     | Type safety                     |
-| [Tailwind CSS](https://tailwindcss.com/)      | 4.x     | Utility-first styling           |
+| Package                                       | Version | Purpose                      |
+| --------------------------------------------- | ------- | ---------------------------- |
+| [Next.js](https://nextjs.org/)                | 16.1.6  | React framework (App Router) |
+| [React](https://react.dev/)                   | 19.2.4  | UI library                   |
+| [React DOM](https://react.dev/)               | 19.2.4  | React renderer               |
+| [TypeScript](https://www.typescriptlang.org/) | 5.9.3   | Type safety                  |
+| [Tailwind CSS](https://tailwindcss.com/)      | 4.1.18  | Utility-first styling        |
 
 ### State & Utilities
 
 | Package                                                     | Version | Purpose                      |
 | ----------------------------------------------------------- | ------- | ---------------------------- |
-| [Zustand](https://zustand-demo.pmnd.rs/)                    | 5.x     | Lightweight state management |
-| [Lucide React](https://lucide.dev/)                         | 0.559.x | Beautiful icons              |
-| [jsPDF](https://github.com/parallax/jsPDF)                  | 3.x     | PDF generation               |
-| [clsx](https://github.com/lukeed/clsx)                      | 2.x     | Conditional classnames       |
-| [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.x     | Merge Tailwind classes       |
+| [Zustand](https://zustand-demo.pmnd.rs/)                    | 5.0.11  | Lightweight state management |
+| [Lucide React](https://lucide.dev/)                         | 0.563.0 | Icons                        |
+| [jsPDF](https://github.com/parallax/jsPDF)                  | 4.0.0   | PDF generation               |
+| [clsx](https://github.com/lukeed/clsx)                      | 2.1.1   | Conditional classnames       |
+| [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.4.0   | Merge Tailwind classes       |
 
 ### Development
 
-| Package | Version | Purpose        |
-| ------- | ------- | -------------- |
-| ESLint  | 9.x     | Code linting   |
-| PostCSS | 8.x     | CSS processing |
+| Package                                                                       | Version | Purpose                    |
+| ----------------------------------------------------------------------------- | ------- | -------------------------- |
+| [ESLint](https://eslint.org/)                                                 | 9.39.2  | Code linting               |
+| [eslint-config-next](https://nextjs.org/docs/app/api-reference/config/eslint) | 16.1.6  | Next.js ESLint defaults    |
+| [PostCSS](https://postcss.org/)                                               | 8.5.6   | CSS processing             |
+| [@tailwindcss/postcss](https://tailwindcss.com/)                              | 4.1.18  | Tailwind v4 PostCSS plugin |
+| [@types/node](https://www.npmjs.com/package/@types/node)                      | 25.0.0  | Node.js types              |
+| [@types/react](https://www.npmjs.com/package/@types/react)                    | 19.0.10 | React types                |
+| [@types/react-dom](https://www.npmjs.com/package/@types/react-dom)            | 19.0.4  | React DOM types            |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18.x or higher
+- Node.js **20.9.0** or higher
 - npm, yarn, pnpm, or bun
 
 ### Installation
@@ -100,7 +106,7 @@ Open [http://localhost:3000](http://localhost:3000) to play.
 ### Available Scripts
 
 ```bash
-npm run dev      # Start development server with Turbopack
+npm run dev      # Start development server (Next.js / Turbopack)
 npm run build    # Create production build
 npm run start    # Start production server
 npm run lint     # Run ESLint
@@ -115,6 +121,9 @@ sodoku/
 │   │   ├── globals.css        # Global styles & animations
 │   │   ├── layout.tsx         # Root layout with metadata
 │   │   └── page.tsx           # Main page (renders SudokuMain)
+│   │
+│   ├── constants/
+│   │   └── index.ts           # Grid + gameplay constants
 │   │
 │   ├── components/
 │   │   ├── ControlPanel.tsx   # Game control buttons
@@ -133,16 +142,19 @@ sodoku/
 │   │   └── index.ts           # TypeScript types & constants
 │   │
 │   └── utils/
+│       ├── gameEngine.ts      # Public game-engine API (re-exports below)
+│       ├── gridConversion.ts  # toIndex/fromIndex + grid<->flat conversions
+│       ├── validation.ts      # conflicts, correctness checks, fill checks
+│       ├── candidates.ts      # candidate (auto-notes) computation
 │       ├── generatePdf.ts     # PDF export functionality
-│       ├── gameEngine.ts      # Fast grid helpers (conflicts, candidates, etc.)
-│       └── sudokuUtils.ts     # Puzzle generation & validation
+│       └── sudokuUtils.ts     # Puzzle generation
 │
 ├── public/
 │   └── screenshot.png         # Game screenshot
 │
+├── .eslintrc.json             # ESLint config
 ├── next.config.mjs            # Next.js configuration
 ├── postcss.config.mjs         # PostCSS configuration
-├── tailwind.config.ts         # Tailwind CSS configuration
 ├── tsconfig.json              # TypeScript configuration
 └── package.json               # Dependencies & scripts
 ```

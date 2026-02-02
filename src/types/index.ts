@@ -1,10 +1,11 @@
+// Difficulty type and settings
 export type Difficulty = "easy" | "medium" | "hard";
 
 export const DIFFICULTY_SETTINGS: Record<Difficulty, number> = {
   easy: 30,
   medium: 40,
   hard: 50,
-} as const;
+};
 
 export type CellPosition = {
   row: number;

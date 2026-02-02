@@ -16,6 +16,7 @@ import {
   gridToFlat,
   toIndex,
 } from "@/utils/gameEngine";
+import { MAX_HISTORY_SIZE } from "@/constants";
 
 interface GameStore extends GameState, GameActions {
   conflictTimeoutId: ReturnType<typeof setTimeout> | null;
@@ -157,6 +158,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   setCellValue: (row: number, col: number, value: number) => {
+    // Bounds validation
+    if (row < 0 || row > 8 || col < 0 || col > 8) return;
+    if (value < 0 || value > 9) return;
+
     const { puzzle, initialPuzzle, status, history, stats, notes } = get();
     const idx = toIndex(row, col);
 
@@ -173,10 +178,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     nextNotes[idx] = 0;
 
     // Update history with delta (only position + previous value)
+    // Limit history size to prevent memory leaks
     const newHistory = [
       ...history,
       { position: { row, col }, previousValue, previousNotes },
-    ];
+    ].slice(-MAX_HISTORY_SIZE);
 
     get()._applyMove({
       nextPuzzle,
@@ -191,9 +197,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   toggleNote: (row: number, col: number, value: number) => {
+    // Bounds validation
+    if (row < 0 || row > 8 || col < 0 || col > 8) return;
+    if (value < 1 || value > 9) return;
+
     const { puzzle, initialPuzzle, status, history, stats, notes } = get();
     const idx = toIndex(row, col);
-    if (value < 1 || value > 9) return;
     if ((initialPuzzle[idx] ?? 0) !== 0 || status.isComplete) return;
     if ((puzzle[idx] ?? 0) !== 0) return; // notes only on empty cells
 
@@ -207,10 +216,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newHistory = [
       ...history,
       { position: { row, col }, previousValue, previousNotes },
-    ];
+    ].slice(-MAX_HISTORY_SIZE);
 
     get()._applyMove({
-      nextPuzzle: puzzle,
+      nextPuzzle: puzzle.slice(),
       nextNotes,
       nextHistory: newHistory,
       nextMoveCount: stats.moveCount + 1,
@@ -266,10 +275,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   checkCompletion: () => {
-    const { puzzle, solution, status } = get();
+    const { puzzle, solution, status, conflictTimeoutId } = get();
 
-    // Clear any existing timeout
-    get().clearConflictTimeout();
+    // Clear any existing timeout before setting a new one
+    if (conflictTimeoutId) {
+      clearTimeout(conflictTimeoutId);
+      set({ conflictTimeoutId: null });
+    }
 
     const isCorrect = puzzle.every((v, i) => v === solution[i]);
 
@@ -342,7 +354,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const newHistory = [
         ...history,
         { position: { row, col }, previousValue, previousNotes },
-      ];
+      ].slice(-MAX_HISTORY_SIZE);
       get()._applyMove({
         nextPuzzle,
         nextNotes,

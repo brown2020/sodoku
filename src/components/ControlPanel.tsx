@@ -81,7 +81,11 @@ const ControlPanel = memo(() => {
   // Get puzzle at click time to avoid unnecessary re-renders
   const handleDownload = useCallback(async () => {
     const puzzle = useGameStore.getState().puzzle;
-    await generatePdf(flatToGrid(puzzle));
+    const success = await generatePdf(flatToGrid(puzzle));
+    if (!success) {
+      // Could add toast notification here in future
+      console.error("Failed to download PDF");
+    }
   }, []);
 
   // Memoize handlers and disabled states
@@ -119,11 +123,9 @@ const ControlPanel = memo(() => {
             onClick={btn.onClick}
             disabled={btn.disabled}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white shadow-sm transition-all active:scale-95",
-              "focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-slate-400",
-              btn.color,
-              btn.disabled &&
-                "opacity-50 cursor-not-allowed hover:bg-gray-400 bg-gray-400"
+              "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white shadow-sm transition-colors active:scale-95",
+              "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+              btn.disabled ? "opacity-50 cursor-not-allowed" : btn.color
             )}
             aria-label={btn.label}
           >
@@ -138,8 +140,8 @@ const ControlPanel = memo(() => {
           type="button"
           onClick={toggleNotesMode}
           className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm transition-all active:scale-95",
-            "focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-slate-400",
+            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm transition-colors active:scale-95",
+            "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
             isNotesMode
               ? "bg-slate-900 text-white"
               : "bg-white text-slate-800 border border-slate-200"
@@ -155,11 +157,10 @@ const ControlPanel = memo(() => {
           onClick={autoFillNotes}
           disabled={isComplete || isPuzzleFilled}
           className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm transition-all active:scale-95",
-            "focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-slate-400",
+            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm transition-colors active:scale-95",
+            "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
             "bg-white text-slate-800 border border-slate-200",
-            (isComplete || isPuzzleFilled) &&
-              "opacity-50 cursor-not-allowed hover:bg-white"
+            (isComplete || isPuzzleFilled) && "opacity-50 cursor-not-allowed"
           )}
           aria-label="Auto-fill notes"
         >
@@ -171,8 +172,8 @@ const ControlPanel = memo(() => {
           type="button"
           onClick={toggleAutoCheck}
           className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm transition-all active:scale-95",
-            "focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-slate-400",
+            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm transition-colors active:scale-95",
+            "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
             isAutoCheckEnabled
               ? "bg-slate-900 text-white"
               : "bg-white text-slate-800 border border-slate-200"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, memo, useRef } from "react";
+import { useEffect, memo, useRef, useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useGameStore } from "@/store/useGameStore";
 import SudokuGrid from "./SudokuGrid";
@@ -14,14 +14,15 @@ const DIFFICULTY_LEVELS = Object.keys(DIFFICULTY_SETTINGS) as Difficulty[];
 // Timer Component to isolate re-renders
 const GameTimer = memo(() => {
   const timeElapsed = useGameStore((state) => state.stats.timeElapsed);
-  const updateTimer = useGameStore((state) => state.updateTimer);
   const isComplete = useGameStore((state) => state.status.isComplete);
 
   useEffect(() => {
     if (isComplete) return;
-    const interval = setInterval(updateTimer, 1000);
+    const interval = setInterval(() => {
+      useGameStore.getState().updateTimer();
+    }, 1000);
     return () => clearInterval(interval);
-  }, [updateTimer, isComplete]);
+  }, [isComplete]);
 
   return (
     <div className="text-xl font-mono font-bold text-slate-700">
@@ -76,18 +77,52 @@ const WinModal = memo(() => {
     }))
   );
   const generateNewGame = useGameStore((state) => state.generateNewGame);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Handle escape key to close modal
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        generateNewGame();
+      }
+    },
+    [generateNewGame]
+  );
+
+  // Focus trap and keyboard handling
+  useEffect(() => {
+    if (hasWon) {
+      // Focus the button when modal opens
+      buttonRef.current?.focus();
+
+      // Add escape key listener
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [hasWon, handleKeyDown]);
 
   if (!hasWon) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 px-4 transition-opacity duration-300 animate-fade-in">
-      <div className="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center transform transition-all scale-100">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 px-4 transition-opacity duration-300 animate-fade-in"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="win-modal-title"
+      aria-describedby="win-modal-description"
+    >
+      <div
+        ref={modalRef}
+        className="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center transform transition-all scale-100"
+      >
         <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg
             className="w-8 h-8"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -97,10 +132,13 @@ const WinModal = memo(() => {
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">
+        <h2
+          id="win-modal-title"
+          className="text-2xl font-bold text-slate-800 mb-2"
+        >
           Puzzle Solved!
         </h2>
-        <p className="text-slate-600 mb-6">
+        <p id="win-modal-description" className="text-slate-600 mb-6">
           Great job! You finished in{" "}
           <span className="font-bold text-slate-800">{stats.moveCount}</span>{" "}
           moves and{" "}
@@ -110,8 +148,9 @@ const WinModal = memo(() => {
           .
         </p>
         <button
+          ref={buttonRef}
           onClick={generateNewGame}
-          className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg hover:shadow-blue-500/30"
+          className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg hover:shadow-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           Play Again
         </button>
@@ -133,14 +172,13 @@ const SudokuMain = () => {
   }, [generateNewGame]);
 
   return (
-    <main className="min-h-screen bg-slate-50 py-12 px-4">
+    <main className="bg-slate-50 py-8 sm:py-12 px-4">
       <div className="max-w-4xl mx-auto flex flex-col items-center">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
-            Sudoku
-          </h1>
-          <p className="text-slate-500">Challenge your mind</p>
-        </header>
+        <div className="text-center mb-6">
+          <p className="text-sm sm:text-base text-slate-500">
+            Challenge your mind
+          </p>
+        </div>
 
         <DifficultySelector />
 

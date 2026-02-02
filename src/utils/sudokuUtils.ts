@@ -1,10 +1,29 @@
 // sudokuUtils.ts
 
+import {
+  GRID_SIZE,
+  CELL_COUNT,
+  MAX_REMOVAL_RATIO,
+  MIN_VISIBLE_CELLS,
+} from "@/constants";
+
 /**
  * Creates a 9x9 grid filled with the specified value
  */
 export const createEmptyGrid = <T>(fill: T): T[][] =>
-  Array.from({ length: 9 }, () => Array(9).fill(fill));
+  Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(fill));
+
+/**
+ * Fisher-Yates shuffle for unbiased randomization
+ */
+const shuffle = <T>(array: T[]): T[] => {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+};
 
 // Utility function to check if a number can be placed in a cell
 const canPlace = (
@@ -57,9 +76,7 @@ export const generateFullGrid = (): number[][] => {
       for (let row = 0; row < 9; row++) {
         for (let col = 0; col < 9; col++) {
           if (grid[row][col] === 0) {
-            const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(
-              () => Math.random() - 0.5
-            );
+            const numbers = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
             for (const num of numbers) {
               if (canPlace(grid, row, col, num)) {
@@ -106,9 +123,8 @@ export const removeNumbers = (
   // Create a deep copy of the grid
   const puzzle = grid.map((row) => [...row]);
 
-  // Limit removal to a reasonable percentage (at most 70% of cells)
-  const totalCells = 81;
-  const maxRemovable = Math.floor(totalCells * 0.7);
+  // Limit removal to a reasonable percentage
+  const maxRemovable = Math.floor(CELL_COUNT * MAX_REMOVAL_RATIO);
   const actualNumbersToRemove = Math.min(numbersToRemove, maxRemovable);
 
   // Create an array of all valid positions
@@ -131,13 +147,13 @@ export const removeNumbers = (
     puzzle[row][col] = 0;
   }
 
-  // Ensure we have at least 20 numbers visible
+  // Ensure we have at least MIN_VISIBLE_CELLS numbers visible
   const filledCount = puzzle.flat().filter((cell) => cell !== 0).length;
 
-  if (filledCount < 20) {
-    // If we have less than 20 filled cells, add back some numbers
+  if (filledCount < MIN_VISIBLE_CELLS) {
+    // If we have less than minimum filled cells, add back some numbers
     const emptyPositions = allPositions.slice(0, actualNumbersToRemove);
-    const neededToAdd = 20 - filledCount;
+    const neededToAdd = MIN_VISIBLE_CELLS - filledCount;
 
     for (let i = 0; i < neededToAdd && i < emptyPositions.length; i++) {
       const { row, col } = emptyPositions[i];

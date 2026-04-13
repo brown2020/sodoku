@@ -81,11 +81,7 @@ const ControlPanel = memo(() => {
   // Get puzzle at click time to avoid unnecessary re-renders
   const handleDownload = useCallback(async () => {
     const puzzle = useGameStore.getState().puzzle;
-    const success = await generatePdf(flatToGrid(puzzle));
-    if (!success) {
-      // Could add toast notification here in future
-      console.error("Failed to download PDF");
-    }
+    await generatePdf(flatToGrid(puzzle));
   }, []);
 
   // Memoize handlers and disabled states

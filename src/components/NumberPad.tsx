@@ -74,5 +74,3 @@ const NumberPad = memo(() => {
 NumberPad.displayName = "NumberPad";
 
 export default NumberPad;
-
-

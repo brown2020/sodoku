@@ -10,7 +10,7 @@ import {
 /**
  * Creates a 9x9 grid filled with the specified value
  */
-export const createEmptyGrid = <T>(fill: T): T[][] =>
+const createEmptyGrid = <T>(fill: T): T[][] =>
   Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(fill));
 
 /**
@@ -105,13 +105,11 @@ export const generateFullGrid = (): number[][] => {
     // Check if the grid is valid (no zeros)
     const hasZeros = grid.some((row) => row.some((cell) => cell === 0));
     if (hasZeros || !success) {
-      console.warn("Grid generation failed, using fallback grid");
       return fallbackGrid;
     }
 
     return grid;
-  } catch (error) {
-    console.error("Error in grid generation:", error);
+  } catch {
     return fallbackGrid;
   }
 };
@@ -163,5 +161,3 @@ export const removeNumbers = (
 
   return puzzle;
 };
-
-// NOTE: conflict detection for gameplay moved to `src/utils/gameEngine.ts` for performance.

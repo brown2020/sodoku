@@ -1,7 +1,6 @@
 // Grid constants
 export const GRID_SIZE = 9;
 export const CELL_COUNT = GRID_SIZE * GRID_SIZE;
-export const BOX_SIZE = 3;
 
 // History limit to prevent memory leaks
 export const MAX_HISTORY_SIZE = 500;

@@ -5,19 +5,9 @@
  */
 export const generatePdf = async (puzzle: number[][]): Promise<boolean> => {
   try {
-    const mod = await import("jspdf");
-    const JsPdfCtor =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ((mod as any).jsPDF as new () => any) ??
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ((mod as any).default as new () => any);
+    const { jsPDF } = await import("jspdf");
 
-    if (!JsPdfCtor) {
-      console.error("Failed to load jsPDF library");
-      return false;
-    }
-
-    const doc = new JsPdfCtor();
+    const doc = new jsPDF();
 
     // Add title to the PDF
     doc.setFontSize(16);
@@ -62,8 +52,7 @@ export const generatePdf = async (puzzle: number[][]): Promise<boolean> => {
     // Download the PDF
     doc.save("sudoku-puzzle.pdf");
     return true;
-  } catch (error) {
-    console.error("Failed to generate PDF:", error);
+  } catch {
     return false;
   }
 };

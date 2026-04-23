@@ -1,9 +1,26 @@
-import { fixupConfigRules } from "@eslint/compat";
-import coreWebVitals from "eslint-config-next/core-web-vitals";
-import typescript from "eslint-config-next/typescript";
+import nextPlugin from "@next/eslint-plugin-next";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
 
 const config = [
-  ...fixupConfigRules([...coreWebVitals, ...typescript]),
+  {
+    plugins: {
+      "@next/next": nextPlugin,
+      "@typescript-eslint": tsPlugin,
+    },
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        ecmaFeatures: { jsx: true },
+      },
+    },
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...tsPlugin.configs.recommended.rules,
+    },
+  },
 ];
 
 export default config;

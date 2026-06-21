@@ -11,24 +11,23 @@
 
 ## Current State
 
-- Phase: Preflight and Repo Docs
-- Task: T-001
+- Phase: Baseline Validation
+- Task: T-002
 - Status: Ready for commit-push checkpoint
-- Last command: npm run lint
-- Last result: passed after adding generated-output ignores to ESLint flat config
-- Last pushed commit: a376f11a9aae5220420bbef7d7b9a71dd3ecfbdf
-- Branch sync: local dev matches origin/dev at a376f11 before run-report edits
-- Working tree: dirty only with safe in-scope run reports, repo docs, and ESLint generated-file ignore fix
-- Next action: Commit and push Preflight and Repo Docs phase, then start Baseline Validation
+- Last command: npm run build
+- Last result: passed
+- Last pushed commit: 13b25fae232387df2efffac605a95421ba6f4d6f
+- Branch sync: local dev matches origin/dev at 13b25fa before baseline report edits
+- Working tree: dirty only with safe in-scope baseline report/run-state updates
+- Next action: Commit and push Baseline Validation report, then start Findings Backlog
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| agent-runs/2026-06-20-codebase-pass/* | Safe-to-commit | Created by this codebase-improvement run |
-| AGENTS.md | Safe-to-commit | Repo guidance required by Preflight and Repo Docs phase |
-| SPEC.md | Safe-to-commit | Current-state spec required by Preflight and Repo Docs phase |
-| eslint.config.mjs | Safe-to-commit | Preflight quality gate fix: flat config must ignore generated output |
+| agent-runs/2026-06-20-codebase-pass/02-baseline-validation.md | Safe-to-commit | Baseline Validation report |
+| agent-runs/2026-06-20-codebase-pass/run-state.md | Safe-to-commit | Resume state update |
+| agent-runs/2026-06-20-codebase-pass/task-queue.md | Safe-to-commit | Task status update |
 
 ## Blockers
 
@@ -37,4 +36,4 @@
 ## Deferred Items
 
 - Product roadmap decisions are outside this workflow.
-- Automated tests are absent; baseline validation will classify that gap.
+- Automated tests are absent; use lint/build until tests are added.

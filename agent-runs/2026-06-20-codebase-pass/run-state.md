@@ -11,21 +11,22 @@
 
 ## Current State
 
-- Phase: Findings Backlog
-- Task: T-003
+- Phase: Package and Dead-Code Cleanup
+- Task: T-004
 - Status: Ready for commit-push checkpoint
-- Last command: npm audit --audit-level=moderate
-- Last result: failed with 4 vulnerabilities, including high-severity Next.js advisories; package-lock is behind package.json ranges
-- Last pushed commit: 612df830766ba1267035fb51e702ea9e0c3a9ea5
-- Branch sync: local dev matches origin/dev at 612df83 before findings report edits
-- Working tree: dirty only with safe in-scope findings report/run-state updates
-- Next action: Commit and push Findings Backlog, then execute P1/P2 tasks
+- Last command: npm run build
+- Last result: passed on updated dependency lockfile
+- Last pushed commit: 73e1cee6b443e4320012834aa9834a512de8d784
+- Branch sync: local dev matches origin/dev at 73e1cee before package cleanup edits
+- Working tree: dirty only with package-lock and safe in-scope package cleanup report/run-state updates
+- Next action: Commit and push Package and Dead-Code Cleanup, then execute focused P2 fixes
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| agent-runs/2026-06-20-codebase-pass/03-findings-backlog.md | Safe-to-commit | Findings Backlog report |
+| package-lock.json | In-scope source | Safe dependency update from `npm update` |
+| agent-runs/2026-06-20-codebase-pass/05-package-and-dead-code-cleanup.md | Safe-to-commit | Package cleanup report |
 | agent-runs/2026-06-20-codebase-pass/run-state.md | Safe-to-commit | Resume state update |
 | agent-runs/2026-06-20-codebase-pass/task-queue.md | Safe-to-commit | Task status update |
 
@@ -38,3 +39,6 @@
 - Product roadmap decisions are outside this workflow.
 - Automated tests are absent; use lint/build until tests are added.
 - Broad store decomposition is deferred unless needed for a concrete fix.
+- Remaining moderate audit item is deferred because non-force audit fix cannot
+  resolve Next's transitive PostCSS copy and `--force` would install a breaking
+  downgrade.

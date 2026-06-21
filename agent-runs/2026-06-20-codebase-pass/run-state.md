@@ -11,21 +11,23 @@
 
 ## Current State
 
-- Phase: Review
+- Phase: Integrator
 - Task: T-010
 - Status: Ready for commit-push checkpoint
-- Last command: npm audit --audit-level=moderate --cache /private/tmp/codex-npm-cache
-- Last result: failed with documented residual moderate Next/PostCSS advisory requiring breaking `--force` path
-- Last pushed commit: c855b1ab677394b4b2271189076760a13e299bf3
-- Branch sync: local dev matches origin/dev at c855b1a before review report edits
-- Working tree: dirty only with safe in-scope review report/run-state updates
-- Next action: Commit and push Review report, then run Stabilization Loop
+- Last command: npm run build
+- Last result: passed
+- Last pushed commit: 756a424f08020434d9742b1514b369853d7dd4a1
+- Branch sync: local dev matches origin/dev at 756a424 before final report edits
+- Working tree: dirty only with safe in-scope stabilization/integrator/final report updates
+- Next action: Commit and push final reports, fetch, confirm clean sync, and report completion
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| agent-runs/2026-06-20-codebase-pass/06-review.md | Safe-to-commit | Review report |
+| agent-runs/2026-06-20-codebase-pass/07-stabilization-loop.md | Safe-to-commit | Stabilization report |
+| agent-runs/2026-06-20-codebase-pass/08-integrator.md | Safe-to-commit | Integrator report |
+| agent-runs/2026-06-20-codebase-pass/final-report.md | Safe-to-commit | Final report |
 | agent-runs/2026-06-20-codebase-pass/run-state.md | Safe-to-commit | Resume state update |
 | agent-runs/2026-06-20-codebase-pass/task-queue.md | Safe-to-commit | Task status update |
 

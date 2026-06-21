@@ -48,37 +48,39 @@ A modern, performant Sudoku game built with Next.js 16, React 19, TypeScript, an
 
 ## Tech Stack
 
+Versions are managed in [`package.json`](./package.json) and
+[`package-lock.json`](./package-lock.json).
+
 ### Core
 
-| Package                                       | Version | Purpose                      |
-| --------------------------------------------- | ------- | ---------------------------- |
-| [Next.js](https://nextjs.org/)                | 16.1.6  | React framework (App Router) |
-| [React](https://react.dev/)                   | 19.2.4  | UI library                   |
-| [React DOM](https://react.dev/)               | 19.2.4  | React renderer               |
-| [TypeScript](https://www.typescriptlang.org/) | 5.9.3   | Type safety                  |
-| [Tailwind CSS](https://tailwindcss.com/)      | 4.1.18  | Utility-first styling        |
+| Package                                       | Purpose                      |
+| --------------------------------------------- | ---------------------------- |
+| [Next.js](https://nextjs.org/)                | React framework (App Router) |
+| [React](https://react.dev/)                   | UI library                   |
+| [React DOM](https://react.dev/)               | React renderer               |
+| [TypeScript](https://www.typescriptlang.org/) | Type safety                  |
+| [Tailwind CSS](https://tailwindcss.com/)      | Utility-first styling        |
 
 ### State & Utilities
 
-| Package                                                     | Version | Purpose                      |
-| ----------------------------------------------------------- | ------- | ---------------------------- |
-| [Zustand](https://zustand-demo.pmnd.rs/)                    | 5.0.11  | Lightweight state management |
-| [Lucide React](https://lucide.dev/)                         | 0.563.0 | Icons                        |
-| [jsPDF](https://github.com/parallax/jsPDF)                  | 4.0.0   | PDF generation               |
-| [clsx](https://github.com/lukeed/clsx)                      | 2.1.1   | Conditional classnames       |
-| [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.4.0   | Merge Tailwind classes       |
+| Package                                                     | Purpose                      |
+| ----------------------------------------------------------- | ---------------------------- |
+| [Zustand](https://zustand-demo.pmnd.rs/)                    | Lightweight state management |
+| [Lucide React](https://lucide.dev/)                         | Icons                        |
+| [jsPDF](https://github.com/parallax/jsPDF)                  | PDF generation               |
+| [clsx](https://github.com/lukeed/clsx)                      | Conditional classnames       |
+| [tailwind-merge](https://github.com/dcastil/tailwind-merge) | Merge Tailwind classes       |
 
 ### Development
 
-| Package                                                                       | Version | Purpose                    |
-| ----------------------------------------------------------------------------- | ------- | -------------------------- |
-| [ESLint](https://eslint.org/)                                                 | 9.39.2  | Code linting               |
-| [eslint-config-next](https://nextjs.org/docs/app/api-reference/config/eslint) | 16.1.6  | Next.js ESLint defaults    |
-| [PostCSS](https://postcss.org/)                                               | 8.5.6   | CSS processing             |
-| [@tailwindcss/postcss](https://tailwindcss.com/)                              | 4.1.18  | Tailwind v4 PostCSS plugin |
-| [@types/node](https://www.npmjs.com/package/@types/node)                      | 25.0.0  | Node.js types              |
-| [@types/react](https://www.npmjs.com/package/@types/react)                    | 19.0.10 | React types                |
-| [@types/react-dom](https://www.npmjs.com/package/@types/react-dom)            | 19.0.4  | React DOM types            |
+| Package                                          | Purpose                    |
+| ------------------------------------------------ | -------------------------- |
+| [ESLint](https://eslint.org/)                    | Code linting               |
+| [PostCSS](https://postcss.org/)                  | CSS processing             |
+| [@tailwindcss/postcss](https://tailwindcss.com/) | Tailwind v4 PostCSS plugin |
+| [@types/node](https://www.npmjs.com/package/@types/node) | Node.js types |
+| [@types/react](https://www.npmjs.com/package/@types/react) | React types |
+| [@types/react-dom](https://www.npmjs.com/package/@types/react-dom) | React DOM types |
 
 ## Getting Started
 

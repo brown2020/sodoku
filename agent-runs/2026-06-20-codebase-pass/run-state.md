@@ -11,22 +11,27 @@
 
 ## Current State
 
-- Phase: Package and Dead-Code Cleanup
-- Task: T-004
+- Phase: Execute Fixes and Improvements
+- Task: T-005/T-006/T-007/T-008
 - Status: Ready for commit-push checkpoint
-- Last command: npm run build
-- Last result: passed on updated dependency lockfile
-- Last pushed commit: 73e1cee6b443e4320012834aa9834a512de8d784
-- Branch sync: local dev matches origin/dev at 73e1cee before package cleanup edits
-- Working tree: dirty only with package-lock and safe in-scope package cleanup report/run-state updates
-- Next action: Commit and push Package and Dead-Code Cleanup, then execute focused P2 fixes
+- Last command: npx tsx -e <no-op move check>
+- Last result: passed
+- Last pushed commit: 709e3c8806da9f511aaecd755bcc429e5e777cfc
+- Branch sync: local dev matches origin/dev at 709e3c8 before source fix edits
+- Working tree: dirty only with in-scope source fixes, README/SPEC/AGENTS updates, and execution report updates
+- Next action: Commit and push Execute Fixes and Improvements, then run review/stabilization
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| package-lock.json | In-scope source | Safe dependency update from `npm update` |
-| agent-runs/2026-06-20-codebase-pass/05-package-and-dead-code-cleanup.md | Safe-to-commit | Package cleanup report |
+| src/utils/sudokuUtils.ts | In-scope source | T-005 unique-solution generator fix |
+| src/store/useGameStore.ts | In-scope source | T-006 no-op move fix |
+| src/app/error.tsx | In-scope source | T-007 raw error message fix |
+| README.md | Safe-to-commit | T-008 stale dependency docs fix |
+| AGENTS.md | Safe-to-commit | Repo guidance current-state update |
+| SPEC.md | Safe-to-commit | Current-state spec update |
+| agent-runs/2026-06-20-codebase-pass/04-execute-fixes-and-improvements.md | Safe-to-commit | Execution report |
 | agent-runs/2026-06-20-codebase-pass/run-state.md | Safe-to-commit | Resume state update |
 | agent-runs/2026-06-20-codebase-pass/task-queue.md | Safe-to-commit | Task status update |
 

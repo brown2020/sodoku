@@ -22,9 +22,11 @@ export default function Error({
         <p className="text-slate-600 mb-4">
           Please try again. If this keeps happening, refresh the page.
         </p>
-        <pre className="text-xs bg-slate-50 border border-slate-200 rounded-lg p-3 overflow-auto mb-4">
-          {error.message}
-        </pre>
+        {process.env.NODE_ENV === "development" ? (
+          <pre className="text-xs bg-slate-50 border border-slate-200 rounded-lg p-3 overflow-auto mb-4">
+            {error.message}
+          </pre>
+        ) : null}
         <button
           type="button"
           onClick={reset}

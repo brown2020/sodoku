@@ -11,7 +11,8 @@ export the current puzzle to PDF.
 - The home route renders the playable Sudoku board.
 - Difficulty levels are `easy`, `medium`, and `hard`.
 - New games generate a complete Sudoku grid, remove a difficulty-specific
-  number of cells, and store both the puzzle and solution in the Zustand store.
+  number of cells while preserving a unique solution, and store both the puzzle
+  and solution in the Zustand store.
 - Players can select cells, type digits, use the on-screen number pad, erase
   entries, toggle notes mode, auto-fill notes, toggle auto-check, undo moves,
   request hints, check completion, solve the game, and download a PDF.
@@ -39,10 +40,6 @@ export the current puzzle to PDF.
 
 ## Quality Risks
 
-- Puzzle generation does not currently prove that removed-cell puzzles have a
-  unique solution. This can create ambiguous puzzles even though each generated
-  full grid is valid.
-- README dependency tables are stale relative to `package.json`.
 - The Zustand store remains a broad ownership point for game logic and UI state.
 - No automated tests protect Sudoku solving, candidate-note, undo, hint, or
   conflict behavior.

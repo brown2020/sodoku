@@ -171,6 +171,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Store the previous value for delta-based history
     const previousValue = puzzle[idx] ?? 0;
     const previousNotes = notes[idx] ?? 0;
+    if (previousValue === value && previousNotes === 0) return;
 
     const nextPuzzle = puzzle.slice();
     nextPuzzle[idx] = value;
@@ -219,7 +220,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     ].slice(-MAX_HISTORY_SIZE);
 
     get()._applyMove({
-      nextPuzzle: puzzle.slice(),
+      nextPuzzle: puzzle,
       nextNotes,
       nextHistory: newHistory,
       nextMoveCount: stats.moveCount + 1,

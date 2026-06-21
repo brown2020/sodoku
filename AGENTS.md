@@ -60,11 +60,9 @@ renders a playable Sudoku board at `src/app/page.tsx` through
 
 ## Known Risk Areas
 
-- `src/utils/sudokuUtils.ts` removes numbers without proving the generated
-  puzzle has a unique solution.
 - `src/store/useGameStore.ts` is the largest shared module and mixes game
   engine orchestration, UI selection state, timers, hints, solving, and notes.
 - `src/components/SudokuCell.tsx` handles focus, paste, keyboard navigation,
   highlighting, and note rendering in one component.
-- README dependency versions can drift from `package.json`; prefer
-  `package.json`/`package-lock.json` as the dependency source of truth.
+- There is no dedicated automated test suite; rely on lint/build and targeted
+  checks until a test harness is added.

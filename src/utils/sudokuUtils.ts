@@ -7,6 +7,9 @@ import {
   MIN_VISIBLE_CELLS,
 } from "@/constants";
 
+const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const FULL_DIGIT_MASK = 0b1111111110;
+
 /**
  * Creates a 9x9 grid filled with the specified value
  */
@@ -24,6 +27,19 @@ const shuffle = <T>(array: T[]): T[] => {
   }
   return result;
 };
+
+const countBits = (mask: number): number => {
+  let count = 0;
+  let remaining = mask;
+  while (remaining !== 0) {
+    remaining &= remaining - 1;
+    count++;
+  }
+  return count;
+};
+
+const getBoxIndex = (row: number, col: number): number =>
+  Math.floor(row / 3) * 3 + Math.floor(col / 3);
 
 // Utility function to check if a number can be placed in a cell
 const canPlace = (
@@ -54,6 +70,88 @@ const canPlace = (
   return true;
 };
 
+const countSolutions = (grid: number[][], limit = 2): number => {
+  const puzzle = grid.map((row) => [...row]);
+  const rowUsed = new Uint16Array(GRID_SIZE);
+  const colUsed = new Uint16Array(GRID_SIZE);
+  const boxUsed = new Uint16Array(GRID_SIZE);
+
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col < GRID_SIZE; col++) {
+      const value = puzzle[row][col] ?? 0;
+      if (value === 0) continue;
+      if (value < 1 || value > 9) return 0;
+
+      const bit = 1 << value;
+      const box = getBoxIndex(row, col);
+      if (rowUsed[row] & bit || colUsed[col] & bit || boxUsed[box] & bit) {
+        return 0;
+      }
+
+      rowUsed[row] |= bit;
+      colUsed[col] |= bit;
+      boxUsed[box] |= bit;
+    }
+  }
+
+  const solve = (): number => {
+    let bestRow = -1;
+    let bestCol = -1;
+    let bestMask = 0;
+    let bestCount = 10;
+
+    for (let row = 0; row < GRID_SIZE; row++) {
+      for (let col = 0; col < GRID_SIZE; col++) {
+        if (puzzle[row][col] !== 0) continue;
+
+        const box = getBoxIndex(row, col);
+        const mask = FULL_DIGIT_MASK & ~(rowUsed[row] | colUsed[col] | boxUsed[box]);
+        const candidateCount = countBits(mask);
+
+        if (candidateCount === 0) return 0;
+        if (candidateCount < bestCount) {
+          bestRow = row;
+          bestCol = col;
+          bestMask = mask;
+          bestCount = candidateCount;
+          if (candidateCount === 1) break;
+        }
+      }
+      if (bestCount === 1) break;
+    }
+
+    if (bestRow === -1 || bestCol === -1) return 1;
+
+    let solutions = 0;
+    const box = getBoxIndex(bestRow, bestCol);
+    for (const value of DIGITS) {
+      const bit = 1 << value;
+      if ((bestMask & bit) === 0) continue;
+
+      puzzle[bestRow][bestCol] = value;
+      rowUsed[bestRow] |= bit;
+      colUsed[bestCol] |= bit;
+      boxUsed[box] |= bit;
+
+      solutions += solve();
+
+      puzzle[bestRow][bestCol] = 0;
+      rowUsed[bestRow] &= ~bit;
+      colUsed[bestCol] &= ~bit;
+      boxUsed[box] &= ~bit;
+
+      if (solutions >= limit) return solutions;
+    }
+
+    return solutions;
+  };
+
+  return solve();
+};
+
+const hasUniqueSolution = (grid: number[][]): boolean =>
+  countSolutions(grid, 2) === 1;
+
 // Generate a complete valid grid
 export const generateFullGrid = (): number[][] => {
   // Create a fixed valid grid as a fallback
@@ -76,7 +174,7 @@ export const generateFullGrid = (): number[][] => {
       for (let row = 0; row < 9; row++) {
         for (let col = 0; col < 9; col++) {
           if (grid[row][col] === 0) {
-            const numbers = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+            const numbers = shuffle(DIGITS);
 
             for (const num of numbers) {
               if (canPlace(grid, row, col, num)) {
@@ -121,8 +219,11 @@ export const removeNumbers = (
   // Create a deep copy of the grid
   const puzzle = grid.map((row) => [...row]);
 
-  // Limit removal to a reasonable percentage
-  const maxRemovable = Math.floor(CELL_COUNT * MAX_REMOVAL_RATIO);
+  // Limit removal to a reasonable percentage and clue floor.
+  const maxRemovable = Math.min(
+    Math.floor(CELL_COUNT * MAX_REMOVAL_RATIO),
+    CELL_COUNT - MIN_VISIBLE_CELLS
+  );
   const actualNumbersToRemove = Math.min(numbersToRemove, maxRemovable);
 
   // Create an array of all valid positions
@@ -139,23 +240,21 @@ export const removeNumbers = (
     [allPositions[i], allPositions[j]] = [allPositions[j], allPositions[i]];
   }
 
-  // Remove the specified number of cells
-  for (let i = 0; i < actualNumbersToRemove && i < allPositions.length; i++) {
+  // Remove cells only when the puzzle keeps a unique solution.
+  let removedCount = 0;
+  for (
+    let i = 0;
+    i < allPositions.length && removedCount < actualNumbersToRemove;
+    i++
+  ) {
     const { row, col } = allPositions[i];
+    const previousValue = puzzle[row][col];
     puzzle[row][col] = 0;
-  }
 
-  // Ensure we have at least MIN_VISIBLE_CELLS numbers visible
-  const filledCount = puzzle.flat().filter((cell) => cell !== 0).length;
-
-  if (filledCount < MIN_VISIBLE_CELLS) {
-    // If we have less than minimum filled cells, add back some numbers
-    const emptyPositions = allPositions.slice(0, actualNumbersToRemove);
-    const neededToAdd = MIN_VISIBLE_CELLS - filledCount;
-
-    for (let i = 0; i < neededToAdd && i < emptyPositions.length; i++) {
-      const { row, col } = emptyPositions[i];
-      puzzle[row][col] = grid[row][col]; // Restore the original number
+    if (hasUniqueSolution(puzzle)) {
+      removedCount++;
+    } else {
+      puzzle[row][col] = previousValue;
     }
   }
 

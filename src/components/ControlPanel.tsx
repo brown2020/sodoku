@@ -34,7 +34,7 @@ const BUTTON_CONFIG: ButtonConfig[] = [
   {
     label: "Undo",
     icon: Undo,
-    color: "bg-amber-500 hover:bg-amber-600",
+    color: "bg-amber-700 hover:bg-amber-800",
   },
   {
     label: "Hint",
@@ -54,7 +54,7 @@ const BUTTON_CONFIG: ButtonConfig[] = [
   {
     label: "PDF",
     icon: Download,
-    color: "bg-cyan-600 hover:bg-cyan-700",
+    color: "bg-cyan-800 hover:bg-cyan-900",
   },
 ];
 

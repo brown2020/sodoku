@@ -15,6 +15,7 @@ const config = [
     ],
   },
   {
+    files: ["**/*.{js,mjs,cjs,ts,tsx}"],
     plugins: {
       "@next/next": nextPlugin,
       "@typescript-eslint": tsPlugin,

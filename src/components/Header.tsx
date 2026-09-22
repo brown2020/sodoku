@@ -14,7 +14,7 @@ const Header = () => {
 
   return (
     <header className="bg-white border-b border-slate-200">
-      <nav className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <nav aria-label="Primary" className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link
           href="/"
           className="text-xl font-bold text-slate-900 hover:text-blue-600 transition-colors"

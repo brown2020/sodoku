@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   description: "Privacy policy for the Sudoku game",
 };
 
+const LAST_UPDATED = "September 22, 2026";
+
 export default function PrivacyPage() {
   return (
     <main className="bg-slate-50 py-8 sm:py-12 px-4">
@@ -14,9 +16,7 @@ export default function PrivacyPage() {
         </h1>
 
         <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 space-y-6">
-          <p className="text-slate-600 text-sm">
-            Last updated: {new Date().toLocaleDateString()}
-          </p>
+          <p className="text-slate-600 text-sm">Last updated: {LAST_UPDATED}</p>
 
           <section>
             <h2 className="text-lg font-semibold text-slate-800 mb-3">
@@ -47,9 +47,9 @@ export default function PrivacyPage() {
               Local Storage
             </h2>
             <p className="text-slate-600 leading-relaxed">
-              The game may use your browser&apos;s local storage to save game
-              state temporarily during a session. This data remains on your
-              device and is not accessible to us or any third parties.
+              The game uses your browser&apos;s local storage to remember
+              difficulty preference and best solve times. This data remains on
+              your device and is not accessible to us or any third parties.
             </p>
           </section>
 

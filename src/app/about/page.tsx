@@ -40,6 +40,7 @@ export default function AboutPage() {
               <li>Hint system for when you get stuck</li>
               <li>PDF export for offline play</li>
               <li>Move counter and timer</li>
+              <li>Difficulty and best solve times persist in localStorage</li>
               <li>Mobile-friendly responsive design</li>
             </ul>
           </section>

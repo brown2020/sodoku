@@ -11,9 +11,12 @@ renders a playable Sudoku board at `src/app/page.tsx` through
 
 - `npm install`: install dependencies from `package-lock.json`.
 - `npm run dev`: start the local Next.js development server.
-- `npm run lint`: run ESLint across the repository.
+- `npm run lint`: run ESLint on `src/`.
+- `npm run typecheck`: TypeScript `tsc --noEmit`.
+- `npm test`: node:test unit tests via tsx.
 - `npm run build`: create a production Next.js build.
 - `npm run start`: run the production server after a build.
+- `npm run doctor`: React Doctor full scan.
 
 ## Architecture Notes
 
@@ -23,6 +26,8 @@ renders a playable Sudoku board at `src/app/page.tsx` through
   controls, keypad, header, and footer.
 - `src/store/useGameStore.ts` is the central Zustand store for puzzle state,
   notes, selected cell/number, move history, timers, conflicts, and actions.
+  `persist` keeps `difficulty` and `bestTimes` in `localStorage` key
+  `sodoku-storage`; TypedArray board state stays in-memory only.
 - `src/utils/gameEngine.ts` is the public utility surface for grid conversion,
   validation, solved/filled checks, and candidate notes.
 - `src/utils/sudokuUtils.ts` generates full Sudoku grids and removes cells for
@@ -52,11 +57,13 @@ renders a playable Sudoku board at `src/app/page.tsx` through
 
 ## Quality Gates
 
-- Run `npm run lint` before every push when source or docs are changed.
+- Run `npm run lint`, `npm run typecheck`, and `npm test` before every push when
+  source or docs are changed.
 - Run `npm run build` before final completion and after TypeScript, Next.js, or
   dependency changes.
-- There is no dedicated test script at this point, so targeted verification is
-  by lint, build, and focused code inspection until tests are added.
+- CI in `.github/workflows/ci.yml` runs lint/typecheck/test/build. Never inline
+  `NEXT_PUBLIC_*` or API keys — use `${{ secrets.* }}` only; tolerate missing
+  secrets; prefer deferred client init if SDKs are added later.
 
 ## Known Risk Areas
 
@@ -64,5 +71,6 @@ renders a playable Sudoku board at `src/app/page.tsx` through
   engine orchestration, UI selection state, timers, hints, solving, and notes.
 - `src/components/SudokuCell.tsx` handles focus, paste, keyboard navigation,
   highlighting, and note rendering in one component.
-- There is no dedicated automated test suite; rely on lint/build and targeted
-  checks until a test harness is added.
+- Unit tests cover validation, grid conversion, and route-security (no API
+  routes / server actions). Prefer adding regressions next to the module under
+  test (`*.test.ts`).

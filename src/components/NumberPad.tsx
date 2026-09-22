@@ -30,7 +30,7 @@ const NumberPad = memo(() => {
             {isNotesMode ? "Notes" : "Number"}
           </span>
         </div>
-        <div className="text-xs text-slate-500">
+        <div className="text-xs text-slate-600">
           {selectedCellIdx == null ? "Select a cell" : "Cell selected"}
         </div>
       </div>
@@ -45,7 +45,7 @@ const NumberPad = memo(() => {
               onClick={() => onPress(n)}
               className={cn(
                 "h-10 rounded-lg bg-white border border-slate-200 shadow-sm font-semibold text-slate-800",
-                "hover:bg-slate-50 active:scale-95 transition",
+                "hover:bg-slate-50 active:scale-95 transition-colors duration-150",
                 "focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               )}
               aria-label={`Enter ${n}`}
@@ -61,7 +61,7 @@ const NumberPad = memo(() => {
         onClick={eraseSelectedCell}
         className={cn(
           "mt-3 w-full h-10 rounded-lg border border-slate-200 bg-white shadow-sm",
-          "text-slate-700 font-medium hover:bg-slate-50 active:scale-[0.99] transition",
+          "text-slate-700 font-medium hover:bg-slate-50 active:scale-[0.99] transition-colors duration-150",
           "focus:outline-hidden focus:ring-2 focus:ring-blue-500"
         )}
       >

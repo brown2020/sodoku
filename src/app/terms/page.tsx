@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   description: "Terms of service for the Sudoku game",
 };
 
+const LAST_UPDATED = "September 22, 2026";
+
 export default function TermsPage() {
   return (
     <main className="bg-slate-50 py-8 sm:py-12 px-4">
@@ -14,9 +16,7 @@ export default function TermsPage() {
         </h1>
 
         <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 space-y-6">
-          <p className="text-slate-600 text-sm">
-            Last updated: {new Date().toLocaleDateString()}
-          </p>
+          <p className="text-slate-600 text-sm">Last updated: {LAST_UPDATED}</p>
 
           <section>
             <h2 className="text-lg font-semibold text-slate-800 mb-3">

@@ -1,25 +1,25 @@
 import Link from "next/link";
 
-const Footer = () => {
-  const currentYear = new Date().getFullYear();
+const COPYRIGHT_YEAR = 2026;
 
+const Footer = () => {
   return (
     <footer className="bg-slate-50 border-t border-slate-200 mt-auto">
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-slate-500">
-            {currentYear} Sudoku. All rights reserved.
+          <p className="text-sm text-slate-600">
+            {COPYRIGHT_YEAR} Sudoku. All rights reserved.
           </p>
-          <nav className="flex items-center gap-6">
+          <nav aria-label="Legal" className="flex items-center gap-6">
             <Link
               href="/privacy"
-              className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
+              className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
             >
               Privacy Policy
             </Link>
             <Link
               href="/terms"
-              className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
+              className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
             >
               Terms of Service
             </Link>

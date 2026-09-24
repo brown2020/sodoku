@@ -110,4 +110,4 @@ Deployed to Vercel at [sodokuapp.vercel.app](https://sodokuapp.vercel.app/). No 
 
 ## License
 
-No `LICENSE` file is present in this repository.
+[GNU Affero General Public License v3.0](LICENSE.md) (AGPL-3.0).

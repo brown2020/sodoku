@@ -18,8 +18,32 @@ import {
   toIndex,
 } from "@/utils/gameEngine";
 import { MAX_HISTORY_SIZE } from "@/constants";
+import { elapsedSeconds } from "@/lib/utils";
+import { createGameStorage, mergePersistedGameState } from "@/store/persistGame";
 
 type BestTimes = Partial<Record<Difficulty, number>>;
+
+function samePuzzleValues(left: ArrayLike<number>, right: ArrayLike<number>): boolean {
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i++) {
+    if ((left[i] ?? 0) !== (right[i] ?? 0)) return false;
+  }
+  return true;
+}
+
+function finishTime(
+  stats: GameState["stats"],
+  difficulty: Difficulty,
+  bestTimes: BestTimes
+) {
+  const timeElapsed = elapsedSeconds(stats.startTime);
+  const previous = bestTimes[difficulty];
+  const nextBest =
+    previous == null || timeElapsed < previous
+      ? { ...bestTimes, [difficulty]: timeElapsed }
+      : bestTimes;
+  return { timeElapsed, bestTimes: nextBest };
+}
 
 interface GameStore extends GameState, GameActions {
   conflictTimeoutId: ReturnType<typeof setTimeout> | null;
@@ -31,6 +55,7 @@ interface GameStore extends GameState, GameActions {
     nextNotes?: Uint16Array;
     nextHistory?: GameState["history"];
     nextMoveCount?: number;
+    preserveNotes?: boolean;
   }) => void;
 }
 
@@ -83,12 +108,14 @@ export const useGameStore = create<GameStore>()(
         nextNotes?: Uint16Array;
         nextHistory?: GameState["history"];
         nextMoveCount?: number;
+        preserveNotes?: boolean;
       }) => {
         const { stats, solution, status, isAutoCheckEnabled, areNotesAuto, difficulty, bestTimes } =
           get();
-        const didPuzzleChange = args.nextPuzzle !== get().puzzle;
-        const nextNotes =
-          areNotesAuto && didPuzzleChange
+        const valuesChanged = !samePuzzleValues(args.nextPuzzle, get().puzzle);
+        const nextNotes = args.preserveNotes
+          ? args.nextNotes ?? get().notes
+          : areNotesAuto && valuesChanged
             ? computeCandidateNotes(args.nextPuzzle)
             : args.nextNotes ?? get().notes;
 
@@ -102,14 +129,9 @@ export const useGameStore = create<GameStore>()(
           isSolved(args.nextPuzzle, solution);
 
         const nextMoveCount = args.nextMoveCount ?? stats.moveCount;
-        const nextTime = stats.timeElapsed;
-        let nextBest = bestTimes;
-        if (hasWonNow) {
-          const prev = bestTimes[difficulty];
-          if (prev == null || nextTime < prev) {
-            nextBest = { ...bestTimes, [difficulty]: nextTime };
-          }
-        }
+        const finished = hasWonNow
+          ? finishTime(stats, difficulty, bestTimes)
+          : null;
 
         set({
           puzzle: args.nextPuzzle,
@@ -118,10 +140,11 @@ export const useGameStore = create<GameStore>()(
           ruleConflicts: computeConflicts(args.nextPuzzle),
           checkHighlights: new Uint8Array(81),
           incorrectHighlights: nextIncorrectHighlights,
-          bestTimes: nextBest,
+          bestTimes: finished?.bestTimes ?? bestTimes,
           stats: {
             ...stats,
             moveCount: nextMoveCount,
+            timeElapsed: finished?.timeElapsed ?? stats.timeElapsed,
           },
           status: hasWonNow
             ? { ...status, isComplete: true, hasWon: true }
@@ -244,8 +267,12 @@ export const useGameStore = create<GameStore>()(
       },
 
       autoFillNotes: () => {
-        const { puzzle, status } = get();
+        const { puzzle, status, areNotesAuto } = get();
         if (status.isComplete) return;
+        if (areNotesAuto) {
+          set({ areNotesAuto: false });
+          return;
+        }
         set({ notes: computeCandidateNotes(puzzle), areNotesAuto: true });
       },
 
@@ -303,11 +330,7 @@ export const useGameStore = create<GameStore>()(
 
         if (isCorrect) {
           const { difficulty, bestTimes, stats } = get();
-          const prev = bestTimes[difficulty];
-          const nextBest =
-            prev == null || stats.timeElapsed < prev
-              ? { ...bestTimes, [difficulty]: stats.timeElapsed }
-              : bestTimes;
+          const finished = finishTime(stats, difficulty, bestTimes);
           set({
             status: {
               ...status,
@@ -315,7 +338,11 @@ export const useGameStore = create<GameStore>()(
               hasWon: !status.isSolved,
             },
             checkHighlights: new Uint8Array(81),
-            bestTimes: nextBest,
+            bestTimes: finished.bestTimes,
+            stats: {
+              ...stats,
+              timeElapsed: finished.timeElapsed,
+            },
           });
         } else {
           const incorrect = computeIncorrectCells(puzzle, solution);
@@ -352,6 +379,7 @@ export const useGameStore = create<GameStore>()(
           nextNotes,
           nextHistory: newHistory,
           nextMoveCount: Math.max(0, stats.moveCount - 1),
+          preserveNotes: true,
         });
       },
 
@@ -411,7 +439,7 @@ export const useGameStore = create<GameStore>()(
           set({
             stats: {
               ...stats,
-              timeElapsed: Math.floor((Date.now() - stats.startTime) / 1000),
+              timeElapsed: elapsedSeconds(stats.startTime),
             },
           });
         }
@@ -419,12 +447,19 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: "sodoku-storage",
+      storage: createGameStorage(),
+      skipHydration: true,
       partialize: (state) => ({
         difficulty: state.difficulty,
         bestTimes: state.bestTimes,
       }),
+      merge: (persisted, current) => mergePersistedGameState(persisted, current),
       onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
+        if (state) {
+          state.setHasHydrated(true);
+          return;
+        }
+        useGameStore.setState({ _hasHydrated: true });
       },
     }
   )

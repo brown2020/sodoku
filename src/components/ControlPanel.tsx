@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useGameStore } from "@/store/useGameStore";
 import { cn } from "@/lib/utils";
@@ -59,15 +59,22 @@ const BUTTON_CONFIG: ButtonConfig[] = [
 ];
 
 const ControlPanel = memo(() => {
-  const { isComplete, isPuzzleFilled, isNotesMode, isAutoCheckEnabled } =
-    useGameStore(
-      useShallow((state) => ({
-        isComplete: state.status.isComplete,
-        isPuzzleFilled: computeIsFilled(state.puzzle),
-        isNotesMode: state.isNotesMode,
-        isAutoCheckEnabled: state.isAutoCheckEnabled,
-      }))
-    );
+  const {
+    isComplete,
+    isPuzzleFilled,
+    isNotesMode,
+    isAutoCheckEnabled,
+    areNotesAuto,
+  } = useGameStore(
+    useShallow((state) => ({
+      isComplete: state.status.isComplete,
+      isPuzzleFilled: computeIsFilled(state.puzzle),
+      isNotesMode: state.isNotesMode,
+      isAutoCheckEnabled: state.isAutoCheckEnabled,
+      areNotesAuto: state.areNotesAuto,
+    }))
+  );
+  const [pdfError, setPdfError] = useState(false);
 
   const generateNewGame = useGameStore((state) => state.generateNewGame);
   const undoMove = useGameStore((state) => state.undoMove);
@@ -81,7 +88,8 @@ const ControlPanel = memo(() => {
   // Get puzzle at click time to avoid unnecessary re-renders
   const handleDownload = useCallback(async () => {
     const puzzle = useGameStore.getState().puzzle;
-    await generatePdf(flatToGrid(puzzle));
+    const saved = await generatePdf(flatToGrid(puzzle));
+    setPdfError(!saved);
   }, []);
 
   // Memoize handlers and disabled states
@@ -151,14 +159,18 @@ const ControlPanel = memo(() => {
         <button
           type="button"
           onClick={autoFillNotes}
-          disabled={isComplete || isPuzzleFilled}
+          disabled={isComplete || (isPuzzleFilled && !areNotesAuto)}
           className={cn(
             "flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm transition-colors active:scale-95",
             "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
-            "bg-white text-slate-800 border border-slate-200",
-            (isComplete || isPuzzleFilled) && "opacity-50 cursor-not-allowed"
+            areNotesAuto
+              ? "bg-slate-900 text-white"
+              : "bg-white text-slate-800 border border-slate-200",
+            (isComplete || (isPuzzleFilled && !areNotesAuto)) &&
+              "opacity-50 cursor-not-allowed"
           )}
-          aria-label="Auto-fill notes"
+          aria-pressed={areNotesAuto}
+          aria-label="Auto notes"
         >
           <Sparkles size={18} />
           <span className="hidden sm:inline">Auto notes</span>
@@ -180,6 +192,12 @@ const ControlPanel = memo(() => {
           <span className="hidden sm:inline">Auto-check</span>
         </button>
       </div>
+
+      {pdfError ? (
+        <p role="alert" className="text-center text-sm text-red-700 mb-4 px-4">
+          Could not download the PDF. Try again.
+        </p>
+      ) : null}
 
       <div className="mb-6">
         <NumberPad />

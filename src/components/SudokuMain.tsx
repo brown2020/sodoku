@@ -172,6 +172,10 @@ const SudokuMain = () => {
   const initialized = useRef(false);
 
   useEffect(() => {
+    void useGameStore.persist.rehydrate();
+  }, []);
+
+  useEffect(() => {
     if (!hydrated || initialized.current) return;
     if (!puzzleFilled) {
       generateNewGame();

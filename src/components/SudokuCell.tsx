@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useGameStore } from "@/store/useGameStore";
 import { toIndex } from "@/utils/gameEngine";
 import CellNotes from "./CellNotes";
+import { digitFromText } from "./cellInput";
 import {
   cellBaseStyles,
   cellStateStyles,
@@ -73,6 +74,14 @@ const SudokuCell = memo(({ rowIndex, colIndex }: SudokuCellProps) => {
     }))
   );
 
+  const applyDigit = useCallback(
+    (n: number) => {
+      if (isNotesMode) toggleNote(rowIndex, colIndex, n);
+      else setCellValue(rowIndex, colIndex, n);
+    },
+    [isNotesMode, toggleNote, setCellValue, rowIndex, colIndex]
+  );
+
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
@@ -80,12 +89,11 @@ const SudokuCell = memo(({ rowIndex, colIndex }: SudokuCellProps) => {
         setCellValue(rowIndex, colIndex, 0);
         return;
       }
-      if (!/^[1-9]$/.test(inputValue)) return;
-      const n = parseInt(inputValue, 10);
-      if (isNotesMode) toggleNote(rowIndex, colIndex, n);
-      else setCellValue(rowIndex, colIndex, n);
+      const n = digitFromText(inputValue);
+      if (n == null) return;
+      applyDigit(n);
     },
-    [setCellValue, toggleNote, isNotesMode, rowIndex, colIndex]
+    [setCellValue, applyDigit, rowIndex, colIndex]
   );
 
   const handleClick = useCallback(() => {
@@ -103,20 +111,32 @@ const SudokuCell = memo(({ rowIndex, colIndex }: SudokuCellProps) => {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLElement>) => {
-      if (focusNeighbor(rowIndex, colIndex, e.key)) e.preventDefault();
+      if (focusNeighbor(rowIndex, colIndex, e.key)) {
+        e.preventDefault();
+        return;
+      }
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (/^[1-9]$/.test(e.key)) {
+        e.preventDefault();
+        applyDigit(Number(e.key));
+        return;
+      }
+      if (e.key === "Backspace" || e.key === "Delete") {
+        e.preventDefault();
+        setCellValue(rowIndex, colIndex, 0);
+      }
     },
-    [rowIndex, colIndex]
+    [applyDigit, setCellValue, rowIndex, colIndex]
   );
 
   const handlePaste = useCallback(
     (e: ClipboardEvent<HTMLInputElement>) => {
-      const text = e.clipboardData.getData("text").trim();
-      const match = text.match(/[1-9]/);
-      if (!match) return;
+      const n = digitFromText(e.clipboardData.getData("text"));
+      if (n == null) return;
       e.preventDefault();
-      setCellValue(rowIndex, colIndex, parseInt(match[0], 10));
+      applyDigit(n);
     },
-    [setCellValue, rowIndex, colIndex]
+    [applyDigit]
   );
 
   const styles = cn(

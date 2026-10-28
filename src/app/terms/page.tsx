@@ -75,7 +75,8 @@ export default function TermsPage() {
               The service and its original content, features, and functionality
               are owned by the developers and are protected by international
               copyright, trademark, and other intellectual property laws. The
-              game is released under the MIT License.
+              game is released under the GNU Affero General Public License
+              v3.0 (AGPL-3.0).
             </p>
           </section>
 

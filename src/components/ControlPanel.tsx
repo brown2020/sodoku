@@ -16,12 +16,17 @@ import {
 } from "lucide-react";
 import { generatePdf } from "@/utils/generatePdf";
 import { computeIsFilled, flatToGrid } from "@/utils/gameEngine";
+import {
+  disabledControlClassName,
+  getCheckButtonState,
+} from "./controlActions";
 import NumberPad from "./NumberPad";
 
 interface ButtonConfig {
   label: string;
   icon: LucideIcon;
   color: string;
+  labelClassName?: string;
 }
 
 // Static button configuration (doesn't change)
@@ -61,6 +66,7 @@ const BUTTON_CONFIG: ButtonConfig[] = [
 const ControlPanel = memo(() => {
   const {
     isComplete,
+    startTime,
     isPuzzleFilled,
     isNotesMode,
     isAutoCheckEnabled,
@@ -68,12 +74,14 @@ const ControlPanel = memo(() => {
   } = useGameStore(
     useShallow((state) => ({
       isComplete: state.status.isComplete,
+      startTime: state.stats.startTime,
       isPuzzleFilled: computeIsFilled(state.puzzle),
       isNotesMode: state.isNotesMode,
       isAutoCheckEnabled: state.isAutoCheckEnabled,
       areNotesAuto: state.areNotesAuto,
     }))
   );
+  const checkButton = getCheckButtonState({ isComplete, startTime });
   const [pdfError, setPdfError] = useState(false);
 
   const generateNewGame = useGameStore((state) => state.generateNewGame);
@@ -101,8 +109,10 @@ const ControlPanel = memo(() => {
       { ...BUTTON_CONFIG[3], onClick: solveGame, disabled: isComplete },
       {
         ...BUTTON_CONFIG[4],
+        label: checkButton.label,
+        labelClassName: checkButton.labelClassName,
         onClick: checkCompletion,
-        disabled: !isPuzzleFilled || isComplete,
+        disabled: checkButton.disabled,
       },
       { ...BUTTON_CONFIG[5], onClick: handleDownload, disabled: false },
     ],
@@ -114,7 +124,9 @@ const ControlPanel = memo(() => {
       checkCompletion,
       handleDownload,
       isComplete,
-      isPuzzleFilled,
+      checkButton.disabled,
+      checkButton.label,
+      checkButton.labelClassName,
     ]
   );
 
@@ -127,14 +139,18 @@ const ControlPanel = memo(() => {
             onClick={btn.onClick}
             disabled={btn.disabled}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white shadow-sm transition-colors active:scale-95",
+              "flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm transition-colors active:scale-95",
               "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
-              btn.disabled ? "opacity-50 cursor-not-allowed" : btn.color
+              btn.disabled
+                ? disabledControlClassName
+                : cn(btn.color, "text-white")
             )}
             aria-label={btn.label}
           >
             <btn.icon size={18} />
-            <span className="hidden sm:inline">{btn.label}</span>
+            <span className={btn.labelClassName ?? "hidden sm:inline"}>
+              {btn.label}
+            </span>
           </button>
         ))}
       </div>

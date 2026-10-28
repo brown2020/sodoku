@@ -319,7 +319,9 @@ export const useGameStore = create<GameStore>()(
       },
 
       checkCompletion: () => {
-        const { puzzle, solution, status, conflictTimeoutId } = get();
+        const { puzzle, solution, status, conflictTimeoutId, stats } = get();
+        if (status.isComplete || !stats.startTime) return;
+        if (!solution.some((value) => value !== 0)) return;
 
         if (conflictTimeoutId) {
           clearTimeout(conflictTimeoutId);

@@ -66,6 +66,21 @@ describe("useGameStore", () => {
     );
   });
 
+  it("checks mistakes before the grid is full", () => {
+    installStorage();
+    useGameStore.getState().generateNewGame();
+    const { puzzle, solution, setCellValue, checkCompletion } =
+      useGameStore.getState();
+    const idx = puzzle.findIndex((value) => value === 0);
+    const correct = solution[idx] ?? 1;
+    const wrong = correct === 1 ? 2 : 1;
+    setCellValue(Math.floor(idx / 9), idx % 9, wrong);
+    checkCompletion();
+    const checked = useGameStore.getState();
+    assert.equal(checked.status.isComplete, false);
+    assert.equal(checked.checkHighlights[idx], 1);
+  });
+
   it("toggles auto notes and restores the previous mask on undo", () => {
     installStorage();
     const store = useGameStore.getState();

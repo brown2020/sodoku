@@ -1,5 +1,9 @@
 # Roadmap
 
+## Tooling (2026-11-02)
+
+Direct dependencies are on the latest releases. `npm run typecheck` uses TypeScript 7.0 (`@typescript/native`). The `typescript` package stays on the TypeScript 6 API (`@typescript/typescript6`) so ESLint can load it; typescript-eslint rejects TypeScript 7.0 until a compiler API ships. `minimatch` is overridden to `^11.0.4` (GHSA-g3hv-75wg-m249). CI and local verification use Node.js 24.
+
 Not implemented. Notes from the QA click-through after Check was enabled during play.
 
 ## Check feedback mid-game

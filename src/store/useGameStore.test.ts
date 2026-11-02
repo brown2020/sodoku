@@ -109,6 +109,57 @@ describe("useGameStore", () => {
     assert.equal(useGameStore.getState().notes[idx], kept);
   });
 
+  it("plays from the number pad through hint and solve", () => {
+    installStorage();
+    useGameStore.getState().generateNewGame();
+    const started = useGameStore.getState();
+    const givenIdx = started.initialPuzzle.findIndex((value) => value !== 0);
+    const emptyIdx = started.puzzle.findIndex((value) => value === 0);
+    assert.ok(givenIdx >= 0);
+    assert.ok(emptyIdx >= 0);
+
+    useGameStore.getState().setSelectedCellIdx(givenIdx);
+    useGameStore.getState().inputNumber(9);
+    assert.equal(
+      useGameStore.getState().puzzle[givenIdx],
+      started.initialPuzzle[givenIdx]
+    );
+
+    useGameStore.getState().setSelectedCellIdx(emptyIdx);
+    useGameStore.getState().toggleNotesMode();
+    useGameStore.getState().inputNumber(3);
+    assert.ok((useGameStore.getState().notes[emptyIdx] ?? 0) & (1 << 3));
+
+    useGameStore.getState().toggleNotesMode();
+    const solutionDigit = started.solution[emptyIdx] ?? 0;
+    useGameStore.getState().inputNumber(solutionDigit);
+    assert.equal(useGameStore.getState().puzzle[emptyIdx], solutionDigit);
+    assert.equal(useGameStore.getState().notes[emptyIdx], 0);
+
+    useGameStore.getState().undoMove();
+    assert.equal(useGameStore.getState().puzzle[emptyIdx], 0);
+    assert.ok((useGameStore.getState().notes[emptyIdx] ?? 0) & (1 << 3));
+
+    const beforeHint = useGameStore.getState().puzzle.slice();
+    useGameStore.getState().provideHint();
+    const hinted = useGameStore.getState();
+    const hintedIdx = [...hinted.puzzle].findIndex(
+      (value, index) => value !== beforeHint[index]
+    );
+    assert.ok(hintedIdx >= 0);
+    assert.equal(hinted.puzzle[hintedIdx], hinted.solution[hintedIdx]);
+
+    useGameStore.getState().solveGame();
+    const solved = useGameStore.getState();
+    assert.deepEqual([...solved.puzzle], [...solved.solution]);
+    assert.equal(solved.status.isComplete, true);
+    assert.equal(solved.status.isSolved, true);
+    assert.equal(solved.status.hasWon, false);
+    solved.checkCompletion();
+    assert.equal(useGameStore.getState().status.hasWon, false);
+    assert.equal(useGameStore.getState().puzzle[emptyIdx], solutionDigit);
+  });
+
   it("hydrates invalid storage without throwing and still accepts moves", async () => {
     installStorage();
     storage.map.set("sodoku-storage", "{");

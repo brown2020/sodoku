@@ -23,13 +23,14 @@ No authentication, Firebase, payments, or server APIs — interactive play runs 
 
 | Layer | Choice |
 | --- | --- |
-| Framework | Next.js `^16.3.6` (App Router) |
-| UI | React `^19.3.0`, Tailwind CSS `^4.3.3`, Lucide icons, `clsx` / `tailwind-merge` |
-| Language | TypeScript `^6` |
-| State | Zustand `^5` with `persist` (difficulty + best times) |
-| PDF | jsPDF `^4` |
+| Framework | Next.js `^16.4.3` (App Router) |
+| UI | React `^19.3.1`, Tailwind CSS `^4.3.3`, Lucide `^1.66.0`, `clsx` / `tailwind-merge` |
+| Language | TypeScript `7.0` (`tsc` via `@typescript/native`) |
+| Lint types | TypeScript `6` API (`typescript` → `@typescript/typescript6`) for typescript-eslint |
+| State | Zustand `^5.0.16` with `persist` (difficulty + best times) |
+| PDF | jsPDF `^4.2.1` |
 | Tests | Node.js built-in test runner via `tsx` |
-| Lint | ESLint `^10` + TypeScript ESLint |
+| Lint | ESLint `^10.14.0` + TypeScript ESLint `^8.72.1` |
 
 ## Project structure
 
@@ -51,7 +52,7 @@ docs/               # architecture / budget notes
 
 ### Prerequisites
 
-- Node.js 22+
+- Node.js 24
 - npm
 
 ### Clone and install
@@ -96,7 +97,9 @@ CI (`.github/workflows/ci.yml`) on pushes/PRs to `dev` and `main`:
 4. `npm test`
 5. `npm run build`
 
-Tests cover grid conversion, route helpers, and validation utilities. Broader game-engine behavior is exercised mainly through the UI and lint/build gates.
+Tests cover grid conversion, route helpers, validation utilities, and the play loop in the game store (entry, notes, undo, hint, check, and solve). `npm run typecheck` uses the TypeScript 7 compiler. ESLint still loads the TypeScript 6 API, because typescript-eslint does not support TypeScript 7.0 (no stable compiler API until 7.1).
+
+`package.json` overrides `minimatch` to `^11.0.4` so ESLint’s transitive copy stays on the release that fixes GHSA-g3hv-75wg-m249. Do not drop that override while the advisory still applies.
 
 ## Deployment
 

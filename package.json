@@ -14,16 +14,16 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "jspdf": "^4.2.1",
-    "lucide-react": "^1.66.0",
-    "next": "^16.4.3",
+    "lucide-react": "^1.68.0",
+    "next": "^16.4.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tailwind-merge": "^3.7.0",
     "zustand": "^5.0.16"
   },
   "devDependencies": {
-    "@next/eslint-plugin-next": "^16.4.3",
-    "@tailwindcss/postcss": "^4.3.3",
+    "@next/eslint-plugin-next": "^16.4.5",
+    "@tailwindcss/postcss": "^4.3.4",
     "@typescript/native": "npm:typescript@^7.0.2",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
@@ -32,12 +32,12 @@
     "@typescript-eslint/parser": "^8.72.1",
     "eslint": "^10.14.0",
     "postcss": "^8.5.32",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "^4.3.4",
     "tsx": "^4.23.15",
     "typescript": "npm:@typescript/typescript6@^6.0.2"
   },
   "optionalDependencies": {
-    "@next/swc-linux-x64-gnu": "^16.4.3"
+    "@next/swc-linux-x64-gnu": "^16.4.5"
   },
   "overrides": {
     "minimatch": "^11.0.4"
